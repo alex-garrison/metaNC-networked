@@ -1,11 +1,12 @@
 public class Win {
-    private final Board board;
-    private boolean isWin = false;
-    private String winner = "No winner";
-    private String winType = "No win";
+    private boolean isWin;
+    private String winner;
+    private String winType;
 
-    public Win(Board newBoard) {
-        board = newBoard;
+    public Win() {
+        this.isWin = false;
+        this.winner = "No winner";
+        this.winType = "No win";
     }
 
     public boolean isWin() {

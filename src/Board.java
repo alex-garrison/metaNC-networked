@@ -1,9 +1,8 @@
-import java.util.ArrayList;
 import java.util.Arrays;
 
 public class Board {
-    public String[][][] board;
-    public String turn;
+    private final String[][][] board;
+    private String turn;
     private int[] lastMove;
 
     public Board() {
@@ -94,7 +93,7 @@ public class Board {
     }
 
     public Win isWin() {
-        Win win = new Win(this);
+        Win win = new Win();
         win.setWinConditions(false);
         for (String player : new String[]{"X","O"}) {
             for (int i = 0; i < board.length; i++) {

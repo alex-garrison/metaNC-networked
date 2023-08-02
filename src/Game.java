@@ -1,8 +1,8 @@
 import java.util.Scanner;
 
 public class Game {
-    private Scanner scan;
-    private Board board;
+    private final Scanner scan;
+    private final Board board;
     private String mode;
 
     public Game(Scanner newScan) {
