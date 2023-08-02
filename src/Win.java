@@ -3,7 +3,6 @@ public class Win {
     private boolean isWin = false;
     private String winner = "No winner";
     private String winType = "No win";
-//    private int[][] winTiles;
 
     public Win(Board newBoard) {
         board = newBoard;
@@ -20,15 +19,6 @@ public class Win {
     public String getWinType() {
         return winType;
     }
-
-//    public int[][] getWinTiles() {
-//        return winTiles;
-//    }
-//
-//    public void setWinTiles(int[][] winTiles) {
-//        this.winTiles = winTiles;
-//    }
-
     public void setWinConditions(Boolean isWin) {
         this.isWin = isWin;
     }

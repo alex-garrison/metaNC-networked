@@ -10,7 +10,7 @@ public class Game {
         board = new Board();
     }
 
-    public void play() throws GameException {
+    public void play() throws GameException, InterruptedException {
         if (mode.isEmpty()) {
             throw new GameException("Mode not set.");
         } else {
@@ -18,11 +18,11 @@ public class Game {
         }
     }
 
-    private void gameLoop() {
+    private void gameLoop() throws GameException {
         boolean isWon;
         boolean isHuman = !(mode.equals("AIVAI"));
         boolean isAIVAI = !isHuman;
-        int[] moveLocation;
+        int[] moveLocation = new int[]{0,0};
         AiAgent ai = new AiAgent(board);
         board.emptyBoard();
 
@@ -31,7 +31,7 @@ public class Game {
 
         while (true) {
             isWon = checkWin();
-            if (isWon) {break;}
+            if (isWon) {break; }
 
             if (isHuman) { moveLocation = PlayerInput.getMove(scan, board.whoseTurn());}
             else { moveLocation = ai.getMove(); }
@@ -43,14 +43,15 @@ public class Game {
             }
 
             if (!isHuman && !isAIVAI) {
-                System.out.println("Player " + board.invertPlayer(board.whoseTurn()) + " moved at " + moveLocation + "\n");
+                System.out.println("Player " + board.invertPlayer(board.whoseTurn()) + " moved at " + moveLocation[0]+"/"+moveLocation[1] + "\n");
             }
 
             if (mode.equals("AI")) {isHuman = !isHuman;}
 
-            if (!isAIVAI) System.out.println( board );
+            if (!isAIVAI) System.out.println(board.toString(moveLocation));
         }
 
+        if (isAIVAI) System.out.println( board.toString(moveLocation) );
     }
 
     public void setMode(String newMode) {

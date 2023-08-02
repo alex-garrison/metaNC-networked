@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 import java.util.Arrays;
 
 public class Board {
@@ -21,13 +22,11 @@ public class Board {
     public void turn(String player, int[] location) throws GameException {
 
             if (player.equals(turn)) {
-                System.out.println("Player is moving to location " + Arrays.toString(location));
+
                 int[] loc = resolveLocation(location);
-                System.out.println("Location resolved to " + Arrays.toString(loc));
 
                 if (isValidMove(location)) {
                     board[loc[0]][loc[1]][loc[2]] = player;
-                    System.out.println("Player moved at board["+loc[0]+"]["+loc[1]+"]["+loc[2]+"]");
                     lastMove = location;
                 } else {
                     throw new GameException("Move not valid.");
@@ -139,26 +138,70 @@ public class Board {
     }
     public String toString() {
         StringBuilder output = new StringBuilder();
+        String[] outputArr = new String[27];
+        int counter = 0;
 
-        output.append("\n");
         for (int j = 0; j < 3; j++) {
             for (int i = 0; i < 9; i++) {
-                if (i % 3 == 0 && i > 0) output.append("| ");
-
                 for (int k = 0; k < 3; k++) {
-                    String cellValue = board[i][j][k];
-                    output.append(cellValue).append(" ");
+                    output.append(board[i][j][k]).append(" ");
                 }
-
-                output.append(" ");
+                outputArr[counter] = output.toString();
+                counter++;
+                output = new StringBuilder();
             }
-
-            output.append("\n");
         }
+
+        output = new StringBuilder();
+        output.append("\n");
+        for (int i = 0; i < 9; i=i+3) {
+            for (int j = i; j < 27; j=j+9) {
+                for (int k = j; k < (j+3); k++) {
+                    output.append(outputArr[k].strip()).append(" ");
+                    if (k<(j+2)) output.append("| ");
+                }
+                output.append(" \n");
+            }
+            if (i<6) output.append("---------------------\n");
+        }
+
         return output.toString();
     }
 
+    public String toString(int[] loc) throws GameException { // colour
+        StringBuilder output = new StringBuilder();
+        String[] outputArr = new String[27];
+        int counter = 0;
 
+        for (int j = 0; j < 3; j++) {
+            for (int i = 0; i < 9; i++) {
+                for (int k = 0; k < 3; k++) {
+                    if (Arrays.equals(new int[]{i, j, k}, resolveLocation(loc))) {
+                        output.append(ConsoleColours.RED);
+                    }
+                    output.append(board[i][j][k]).append(ConsoleColours.RESET).append(" ");
+                }
+                outputArr[counter] = output.toString();
+                counter++;
+                output = new StringBuilder();
+            }
+        }
+
+        output = new StringBuilder();
+        output.append("\n");
+        for (int i = 0; i < 9; i=i+3) {
+            for (int j = i; j < 27; j=j+9) {
+                for (int k = j; k < (j+3); k++) {
+                    output.append(outputArr[k].strip()).append(" ");
+                    if (k<(j+2)) output.append("| ");
+                }
+                output.append(" \n");
+            }
+            if (i<6) output.append("---------------------\n");
+        }
+
+        return output.toString();
+    }
 
     public int[] resolveLocation(int[] location) throws GameException {
         int row;
