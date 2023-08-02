@@ -1,12 +1,12 @@
 import java.util.Arrays;
 
 public class Board {
-    private String[][] board;
+    public String[][][] board;
     private String turn;
-    private int lastMove;
+    private int[] lastMove;
 
     public Board() {
-        board = new String[3][3];
+        board = new String[9][3][3];
         this.emptyBoard();
     }
 
@@ -18,16 +18,14 @@ public class Board {
         turn = starter;
     }
 
-    public void turn(String player, int location) throws GameException {
-        if (location < 1 || location > 9) {
-            throw new GameException("Location not in range");
-        } else {
+    public void turn(String player, int[] location) throws GameException {
+
             if (player.equals(turn)) {
                 int[] loc = resolveLocation(location);
 
 
                 if (isValidMove(location)) {
-                    board[loc[0]][loc[1]] = player;
+                    board[loc[0]][loc[1]][loc[2]] = player;
                     lastMove = location;
                 } else {
                     throw new GameException("Move not valid.");
@@ -40,45 +38,53 @@ public class Board {
             } else {
                 throw new GameException("It is not player " + player + "'s turn.");
             }
-        }
+
     }
 
-    public boolean isValidMove(int location) {
-        int[] loc = new int[0];
+    public boolean isValidMove(int[] location) {
+        int[] loc = new int[3];
         try {
             loc = resolveLocation(location);
         } catch (GameException e) {
             System.out.println(e.getMessage());
         }
-        return board[loc[0]][loc[1]].equals(".");
+        return board[loc[0]][loc[1]][loc[2]].equals(".");
     }
 
     public int getNumberOfValidMoves() {
         int numberOfValidMoves = 0;
         for (int i = 1; i < 10; i++) {
-            if (isValidMove(i)) {numberOfValidMoves++;}
+            for (int j = 1; j < 10; j++) {
+                if (isValidMove(new int[]{i, j})) {numberOfValidMoves++;}
+            }
         }
         return numberOfValidMoves;
     }
 
-    public int[] getValidMoves() {
+    public int[][] getValidMoves() {
         int numberOfValidMoves = getNumberOfValidMoves();
 
-        int[] validMoves = new int[numberOfValidMoves];
+        int[][] validMoves = new int[numberOfValidMoves][2];
         int counter = 0;
-        for (int i = 1; i < 10; i++) {
-            if (isValidMove(i)) {validMoves[counter] = i; counter++;}
-        }
 
+        for (int i = 1; i < 10; i++) {
+            for (int j = 1; j < 10; j++) {
+//                if (isValidMove(new int[]{i, j})) {numberOfValidMoves++;}
+                if (isValidMove(new int[]{i, j})) {
+                    validMoves[counter] = new int[]{i,j};
+                    counter++;
+                }
+            }
+        }
         return validMoves;
     }
 
-    public int getLastMove() {
+    public int[] getLastMove() {
         return lastMove;
     }
 
     public int[] getLastMoveArr() {
-        int[] lastMoveArr = new int[2];
+        int[] lastMoveArr = new int[3];
         try {
             lastMoveArr = resolveLocation(lastMove);
         } catch (GameException e) {
@@ -87,52 +93,54 @@ public class Board {
         return lastMoveArr;
     }
 
-    public Win isWin() {
-        Win win = new Win(this);
-        win.setWin(false);
-        for (String player : new String[]{"X","O"}) {
-            for (int i = 0; i < board.length; i++) {
-                if (board[i][0].equals(player) && board[i][1].equals(player) && board[i][2].equals(player)) {
-                    win.setWin(true);
-                    win.setWinType("win");
-                    win.setWinTiles(new int[][] {{i, 0}, {i, 1}, {i, 2}});
-                    win.setWinner(player);
-                    return win;
-                } else if (board[0][i].equals(player) && board[1][i].equals(player) && board[2][i].equals(player)){
-                    win.setWin(true);
-                    win.setWinType("win");
-                    win.setWinTiles(new int[][] {{0, i}, {1, i}, {2, i}});
-                    win.setWinner(player);
-                    return win;
-                }
-            }
-            if ((board[0][0].equals(player) && board[1][1].equals(player) && board[2][2].equals(player))) {
-                win.setWin(true);
-                win.setWinType("win");
-                win.setWinTiles(new int[][] {{0, 0}, {1, 1}, {2, 2}});
-                win.setWinner(player);
-                return win;
-            } else if ((board[0][2].equals(player) && board[1][1].equals(player) && board[2][0].equals(player))) {
-                win.setWin(true);
-                win.setWinType("win");
-                win.setWinTiles(new int[][] {{0, 2}, {1, 1}, {2, 0}});
-                win.setWinner(player);
-                return win;
-            }
-        }
-        if (getNumberOfValidMoves() == 0) {
-            win.setWin(true);
-            win.setWinType("draw");
-            return win;
-        }
-        return win;
-    }
+//    public Win isWin() {
+//        Win win = new Win(this);
+//        win.setWin(false);
+//        for (String player : new String[]{"X","O"}) {
+//            for (int i = 0; i < board.length; i++) {
+//                if (board[i][0].equals(player) && board[i][1].equals(player) && board[i][2].equals(player)) {
+//                    win.setWin(true);
+//                    win.setWinType("win");
+//                    win.setWinTiles(new int[][] {{i, 0}, {i, 1}, {i, 2}});
+//                    win.setWinner(player);
+//                    return win;
+//                } else if (board[0][i].equals(player) && board[1][i].equals(player) && board[2][i].equals(player)){
+//                    win.setWin(true);
+//                    win.setWinType("win");
+//                    win.setWinTiles(new int[][] {{0, i}, {1, i}, {2, i}});
+//                    win.setWinner(player);
+//                    return win;
+//                }
+//            }
+//            if ((board[0][0].equals(player) && board[1][1].equals(player) && board[2][2].equals(player))) {
+//                win.setWin(true);
+//                win.setWinType("win");
+//                win.setWinTiles(new int[][] {{0, 0}, {1, 1}, {2, 2}});
+//                win.setWinner(player);
+//                return win;
+//            } else if ((board[0][2].equals(player) && board[1][1].equals(player) && board[2][0].equals(player))) {
+//                win.setWin(true);
+//                win.setWinType("win");
+//                win.setWinTiles(new int[][] {{0, 2}, {1, 1}, {2, 0}});
+//                win.setWinner(player);
+//                return win;
+//            }
+//        }
+//        if (getNumberOfValidMoves() == 0) {
+//            win.setWin(true);
+//            win.setWinType("draw");
+//            return win;
+//        }
+//        return win;
+//    }
 
     public void emptyBoard() {
         for (int i = 0; i < board.length; i++) {
-            board[i] = new String[] {".", ".", "."};
+            for (int j = 0; j < board[i].length; j++) {
+                board[i][j] = new String[] {".", ".", "."};
+            }
         }
-        lastMove = -1;
+        lastMove = new int[]{-1,-1};
     }
 
     public String whoseTurn() {
@@ -141,47 +149,64 @@ public class Board {
 
     public String toString() {
         StringBuilder output = new StringBuilder();
-        for (String[] strings : board) {
-            for (String string : strings) {
-                output.append(string).append(" ");
-            }
-            output.append("\n");
-        }
-        return output.toString();
-    }
+        int rowCounter = 1;
+        int colCounter = 1;
 
-    public String toStringColour(int[][] locations, String colour) {
-        StringBuilder output = new StringBuilder();
-        int[] locArr;
-
-        for (int i = 0; i < board.length; i++) {
-            for (int j = 0; j < board[i].length; j++) {
-                locArr = new int[]{i, j};
-                for (int[] location : locations) {
-                    if (Arrays.equals(location, locArr)) {
-                        output.append(colour);
+        for (String[][] localBoards : board) {
+            for (String[] rows : localBoards) {
+                for (String cols: rows) {
+                    output.append(cols).append(" ");
+                    if (((colCounter % 3) == 0) && (colCounter != 9)) {
+                        output.append("| ");
                     }
+                    colCounter++;
                 }
-                output.append(board[i][j]).append(ConsoleColours.RESET).append(" ");
             }
             output.append("\n");
+
+            if (((rowCounter % 3) == 0) && (rowCounter != 9)) {
+                output.append("---------------------\n");
+            }
+            rowCounter++;
+
+            colCounter = 1;
+
         }
         return output.toString();
     }
 
-    private int[] resolveLocation(int location) throws GameException {
+//    public String toStringColour(int[][] locations, String colour) {
+//        StringBuilder output = new StringBuilder();
+//        int[] locArr;
+//
+//        for (int i = 0; i < board.length; i++) {
+//            for (int j = 0; j < board[i].length; j++) {
+//                locArr = new int[]{i, j};
+//                for (int[] location : locations) {
+//                    if (Arrays.equals(location, locArr)) {
+//                        output.append(colour);
+//                    }
+//                }
+//                output.append(board[i][j]).append(ConsoleColours.RESET).append(" ");
+//            }
+//            output.append("\n");
+//        }
+//        return output.toString();
+//    }
+
+    public int[] resolveLocation(int[] location) throws GameException {
         int row;
-        if (location > 0 && location <= 3) {
+        if (location[1] > 0 && location[1] <= 3) {
             row = 0;
-        } else if (location > 3 && location <= 6) {
+        } else if (location[1] > 3 && location[1] <= 6) {
             row = 1;
-        } else if (location > 6 && location <= 9) {
+        } else if (location[1] > 6 && location[1] <= 9) {
             row = 2;
         } else {
             throw new GameException("Location not in range.");
         }
-        int col = (location-1) % 3;
-        return new int[] {row, col};
+        int col = (location[1]-1) % 3;
+        return new int[] {location[0]-1, row, col};
     }
 }
 
