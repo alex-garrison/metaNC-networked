@@ -21,10 +21,13 @@ public class Board {
     public void turn(String player, int[] location) throws GameException {
 
             if (player.equals(turn)) {
+                System.out.println("Player is moving to location " + Arrays.toString(location));
                 int[] loc = resolveLocation(location);
+                System.out.println("Location resolved to " + Arrays.toString(loc));
 
                 if (isValidMove(location)) {
                     board[loc[0]][loc[1]][loc[2]] = player;
+                    System.out.println("Player moved at board["+loc[0]+"]["+loc[1]+"]["+loc[2]+"]");
                     lastMove = location;
                 } else {
                     throw new GameException("Move not valid.");
@@ -96,9 +99,8 @@ public class Board {
         win.setWinConditions(false);
         for (String player : new String[]{"X","O"}) {
             for (int i = 0; i < board.length; i++) {
-                System.out.println("Checking board " + i + " for player " + player);
+
                 for (int j = 0; j < board[i].length; j++) {
-                    System.out.println("    Checking row/col " + j);
                     if (board[i][j][0].equals(player) && board[i][j][1].equals(player) && board[i][j][2].equals(player)) {
                         win.setWinConditions(true, "win", player);
                         return win;
@@ -107,7 +109,6 @@ public class Board {
                         return win;
                     }
                 }
-                System.out.println("    Checking diagonals ");
                 if ((board[i][0][0].equals(player) && board[i][1][1].equals(player) && board[i][2][2].equals(player))) {
                     win.setWinConditions(true, "win", player);
                     return win;
@@ -136,34 +137,28 @@ public class Board {
     public String whoseTurn() {
         return turn;
     }
-
     public String toString() {
         StringBuilder output = new StringBuilder();
-        int rowCounter = 1;
-        int colCounter = 1;
 
-        for (String[][] localBoards : board) {
-            for (String[] rows : localBoards) {
-                for (String cols: rows) {
-                    output.append(cols).append(" ");
-                    if (((colCounter % 3) == 0) && (colCounter != 9)) {
-                        output.append("| ");
-                    }
-                    colCounter++;
+        output.append("\n");
+        for (int j = 0; j < 3; j++) {
+            for (int i = 0; i < 9; i++) {
+                if (i % 3 == 0 && i > 0) output.append("| ");
+
+                for (int k = 0; k < 3; k++) {
+                    String cellValue = board[i][j][k];
+                    output.append(cellValue).append(" ");
                 }
+
+                output.append(" ");
             }
+
             output.append("\n");
-
-            if (((rowCounter % 3) == 0) && (rowCounter != 9)) {
-                output.append("---------------------\n");
-            }
-            rowCounter++;
-
-            colCounter = 1;
-
         }
         return output.toString();
     }
+
+
 
     public int[] resolveLocation(int[] location) throws GameException {
         int row;
