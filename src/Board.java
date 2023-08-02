@@ -2,7 +2,7 @@ import java.util.Arrays;
 
 public class Board {
     public String[][][] board;
-    private String turn;
+    public String turn;
     private int[] lastMove;
 
     public Board() {
@@ -22,7 +22,6 @@ public class Board {
 
             if (player.equals(turn)) {
                 int[] loc = resolveLocation(location);
-
 
                 if (isValidMove(location)) {
                     board[loc[0]][loc[1]][loc[2]] = player;
@@ -69,7 +68,6 @@ public class Board {
 
         for (int i = 1; i < 10; i++) {
             for (int j = 1; j < 10; j++) {
-//                if (isValidMove(new int[]{i, j})) {numberOfValidMoves++;}
                 if (isValidMove(new int[]{i, j})) {
                     validMoves[counter] = new int[]{i,j};
                     counter++;
@@ -93,46 +91,38 @@ public class Board {
         return lastMoveArr;
     }
 
-//    public Win isWin() {
-//        Win win = new Win(this);
-//        win.setWin(false);
-//        for (String player : new String[]{"X","O"}) {
-//            for (int i = 0; i < board.length; i++) {
-//                if (board[i][0].equals(player) && board[i][1].equals(player) && board[i][2].equals(player)) {
-//                    win.setWin(true);
-//                    win.setWinType("win");
-//                    win.setWinTiles(new int[][] {{i, 0}, {i, 1}, {i, 2}});
-//                    win.setWinner(player);
-//                    return win;
-//                } else if (board[0][i].equals(player) && board[1][i].equals(player) && board[2][i].equals(player)){
-//                    win.setWin(true);
-//                    win.setWinType("win");
-//                    win.setWinTiles(new int[][] {{0, i}, {1, i}, {2, i}});
-//                    win.setWinner(player);
-//                    return win;
-//                }
-//            }
-//            if ((board[0][0].equals(player) && board[1][1].equals(player) && board[2][2].equals(player))) {
-//                win.setWin(true);
-//                win.setWinType("win");
-//                win.setWinTiles(new int[][] {{0, 0}, {1, 1}, {2, 2}});
-//                win.setWinner(player);
-//                return win;
-//            } else if ((board[0][2].equals(player) && board[1][1].equals(player) && board[2][0].equals(player))) {
-//                win.setWin(true);
-//                win.setWinType("win");
-//                win.setWinTiles(new int[][] {{0, 2}, {1, 1}, {2, 0}});
-//                win.setWinner(player);
-//                return win;
-//            }
-//        }
-//        if (getNumberOfValidMoves() == 0) {
-//            win.setWin(true);
-//            win.setWinType("draw");
-//            return win;
-//        }
-//        return win;
-//    }
+    public Win isWin() {
+        Win win = new Win(this);
+        win.setWinConditions(false);
+        for (String player : new String[]{"X","O"}) {
+            for (int i = 0; i < board.length; i++) {
+                System.out.println("Checking board " + i + " for player " + player);
+                for (int j = 0; j < board[i].length; j++) {
+                    System.out.println("    Checking row/col " + j);
+                    if (board[i][j][0].equals(player) && board[i][j][1].equals(player) && board[i][j][2].equals(player)) {
+                        win.setWinConditions(true, "win", player);
+                        return win;
+                    } else if (board[i][0][j].equals(player) && board[i][1][j].equals(player) && board[i][2][j].equals(player)){
+                        win.setWinConditions(true, "win", player);
+                        return win;
+                    }
+                }
+                System.out.println("    Checking diagonals ");
+                if ((board[i][0][0].equals(player) && board[i][1][1].equals(player) && board[i][2][2].equals(player))) {
+                    win.setWinConditions(true, "win", player);
+                    return win;
+                } else if ((board[i][0][2].equals(player) && board[i][1][1].equals(player) && board[i][2][0].equals(player))) {
+                    win.setWinConditions(true, "win", player);
+                    return win;
+                }
+            }
+        }
+        if (getNumberOfValidMoves() == 0) {
+            win.setWinConditions(true, "draw");
+            return win;
+        }
+        return win;
+    }
 
     public void emptyBoard() {
         for (int i = 0; i < board.length; i++) {
@@ -174,25 +164,6 @@ public class Board {
         }
         return output.toString();
     }
-
-//    public String toStringColour(int[][] locations, String colour) {
-//        StringBuilder output = new StringBuilder();
-//        int[] locArr;
-//
-//        for (int i = 0; i < board.length; i++) {
-//            for (int j = 0; j < board[i].length; j++) {
-//                locArr = new int[]{i, j};
-//                for (int[] location : locations) {
-//                    if (Arrays.equals(location, locArr)) {
-//                        output.append(colour);
-//                    }
-//                }
-//                output.append(board[i][j]).append(ConsoleColours.RESET).append(" ");
-//            }
-//            output.append("\n");
-//        }
-//        return output.toString();
-//    }
 
     public int[] resolveLocation(int[] location) throws GameException {
         int row;

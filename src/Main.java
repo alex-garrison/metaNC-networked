@@ -6,23 +6,17 @@ public class Main {
         Scanner scan = new Scanner(System.in);
 
         Board board = new Board();
+        board.setStarter("X");
 
-//        System.out.println(board.toString());
+        System.out.println(board);
 
-        System.out.println(Arrays.toString(board.resolveLocation(PlayerInput.getMove(scan, "X"))));
+        board.turn("X", new int[]{1,1}); board.turn = "X";
+        board.turn("X", new int[]{1,2}); board.turn = "X";
+        board.turn("X", new int[]{1,3}); board.turn = "X";
 
-//        int[][] validMoves = board.getValidMoves();
-//        for (int i = 0; i < validMoves.length; i++) {
-//            System.out.println(Arrays.toString(validMoves[i]));
-//        }
+        System.out.println(board);
 
-
-//        for (int i = 0; i < board.board.length; i++) {
-//            for (int j = 0; j < board.board[i].length; j++) {
-//                System.out.println(Arrays.toString(board.board[i][j]));
-//            }
-//            System.out.println("---------");
-//        }
+        System.out.println(board.isWin().isWin());
 
 //        Game game = new Game(scan);
 
