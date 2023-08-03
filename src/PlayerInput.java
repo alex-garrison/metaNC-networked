@@ -31,27 +31,33 @@ public class PlayerInput {
         return mode;
     }
 
-    public static int getMove(Scanner scan, String player) {
-        int moveLocation;
+    public static int[] getMove(Scanner scan, String player) {
+        int[] moveLocation = new int[2];
 
-        while (true) {
+        outerloop: while (true) {
             while (true) {
                 try {
                     System.out.print("Player " + player + " enter move : ");
                     String moveLocationString = scan.next();
-                    moveLocation = Integer.parseInt(moveLocationString);
+                    String[] moveLocationChars = moveLocationString.split("/");
+                    for (int i = 0; i < moveLocation.length; i++) {
+                        moveLocation[i] = Integer.parseInt(moveLocationChars[i]);
+                    }
                     break;
                 } catch (Exception e)  {
-                    System.out.println("Move must be between 1 and 9");
+                    System.out.println("Move must be in the format (1-9)/(1-9) ");
                 }
             }
-
-            if (moveLocation < 1 || moveLocation > 9) {
-                System.out.println("Move must be between 1 and 9");
-            } else {
-                break;
+            for (int moveLoc: moveLocation) {
+                if (moveLoc < 1 || moveLoc > 9) {
+                    System.out.println("Move must be between 1 and 9");
+                    continue outerloop;
+                }
             }
+            break;
+
         }
+
         return moveLocation;
     }
 }

@@ -1,12 +1,12 @@
 public class Win {
-    private final Board board;
-    private boolean isWin = false;
-    private String winner = "No winner";
-    private String winType = "No win";
-    private int[][] winTiles;
+    private boolean isWin;
+    private String winner;
+    private String winType;
 
-    public Win(Board newBoard) {
-        board = newBoard;
+    public Win() {
+        this.isWin = false;
+        this.winner = "No winner";
+        this.winType = "No win";
     }
 
     public boolean isWin() {
@@ -20,24 +20,18 @@ public class Win {
     public String getWinType() {
         return winType;
     }
-
-    public int[][] getWinTiles() {
-        return winTiles;
-    }
-
-    public void setWinTiles(int[][] winTiles) {
-        this.winTiles = winTiles;
-    }
-
-    public void setWinner(String winner) {
-        this.winner = winner;
-    }
-
-    public void setWin(Boolean isWin) {
+    public void setWinConditions(Boolean isWin) {
         this.isWin = isWin;
     }
 
-    public void setWinType(String winType) {
+    public void setWinConditions(Boolean isWin, String winType) {
+        this.isWin = isWin;
+        this.winType = winType;
+    }
+
+    public void setWinConditions(Boolean isWin, String winType, String winner) {
+        this.winner = winner;
+        this.isWin = isWin;
         this.winType = winType;
     }
 }

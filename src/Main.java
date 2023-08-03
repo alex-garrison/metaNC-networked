@@ -5,13 +5,17 @@ public class Main {
         Scanner scan = new Scanner(System.in);
 
         Game game = new Game(scan);
+
         game.setMode(PlayerInput.getMode(scan));
 
         try {
             game.play();
         } catch (GameException e) {
             System.out.println(e.getMessage());
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         }
+
 
     }
 }

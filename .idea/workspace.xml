@@ -1,21 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="412dbc24-db8c-4dbf-8797-c3a3b012b83b" name="Changes" comment="Initial console game loop for 3x3 board">
-      <change afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/metaNC.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/AiAgent.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/Board.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/ConsoleColours.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/Game.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/GameException.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/Main.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/PlayerInput.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/Win.java" afterDir="false" />
+    <list default="true" id="412dbc24-db8c-4dbf-8797-c3a3b012b83b" name="Changes" comment="Improved the printing function for better UX, with overloading for colour printing">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/AiAgent.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/AiAgent.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Board.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Board.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Game.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Game.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Main.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Win.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Win.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -30,10 +22,18 @@
     </option>
   </component>
   <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="main" />
+      </map>
+    </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
+  </component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="CurrentFile" />
   </component>
   <component name="ProjectId" id="2TQxx2v5WFTw1gZhSKMX6XWkbBl" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true">
@@ -59,8 +59,44 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1690989353701</updated>
-      <workItem from="1690989355004" duration="498000" />
+      <workItem from="1690989355004" duration="22815000" />
     </task>
+    <task id="LOCAL-00001" summary="Initial console game loop for 3x3 board">
+      <created>1690989890975</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1690989890975</updated>
+    </task>
+    <task id="LOCAL-00002" summary="Changed global board size, and rewrote methods for move validating/resolving + formating to a string + valid move generation">
+      <created>1690996998473</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1690996998473</updated>
+    </task>
+    <task id="LOCAL-00003" summary="Fixed win state checking for each local board, refactored Win class with method overloading, removed board printing with colour">
+      <created>1690999174088</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1690999174088</updated>
+    </task>
+    <task id="LOCAL-00004" summary="Fixed the printing function to accurately show board state, enabled the game loop and the random AI agent">
+      <created>1691004981711</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1691004981711</updated>
+    </task>
+    <task id="LOCAL-00005" summary="Improved the printing function for better UX, with overloading for colour printing">
+      <created>1691019415771</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1691019415771</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -71,7 +107,34 @@
       <map>
         <entry key="MAIN">
           <value>
-            <State />
+            <State>
+              <option name="FILTERS">
+                <map>
+                  <entry key="branch">
+                    <value>
+                      <list>
+                        <option value="testing" />
+                      </list>
+                    </value>
+                  </entry>
+                </map>
+              </option>
+            </State>
+          </value>
+        </entry>
+      </map>
+    </option>
+    <option name="RECENT_FILTERS">
+      <map>
+        <entry key="Branch">
+          <value>
+            <list>
+              <RecentGroup>
+                <option name="FILTER_VALUES">
+                  <option value="testing" />
+                </option>
+              </RecentGroup>
+            </list>
           </value>
         </entry>
       </map>
@@ -80,6 +143,20 @@
   <component name="VcsManagerConfiguration">
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
     <MESSAGE value="Initial console game loop for 3x3 board" />
-    <option name="LAST_COMMIT_MESSAGE" value="Initial console game loop for 3x3 board" />
+    <MESSAGE value="Changed global board size, and rewrote methods for move validating/resolving + formating to a string + valid move generation" />
+    <MESSAGE value="Fixed win state checking for each local board, refactored Win class with method overloading, removed board printing with colour" />
+    <MESSAGE value="Fixed the printing function to accurately show board state, enabled the game loop and the random AI agent" />
+    <MESSAGE value="Improved the printing function for better UX, with overloading for colour printing" />
+    <option name="LAST_COMMIT_MESSAGE" value="Improved the printing function for better UX, with overloading for colour printing" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <breakpoint enabled="true" type="java-exception">
+          <properties class="java.lang.NoSuchMethodError" package="java.lang" />
+          <option name="timeStamp" value="1" />
+        </breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
 </project>
