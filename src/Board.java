@@ -1,13 +1,22 @@
 import java.util.Arrays;
+import java.util.TreeSet;
 
 public class Board {
     private final String[][][] board;
-    private String turn;
+    public String turn;
     private int[] lastMove;
+    private Win[] localBoardWins;
+    private TreeSet<Integer> wonBoards;
 
     public Board() {
-        board = new String[9][3][3];
+        this.board = new String[9][3][3];
+        this.localBoardWins = new Win[9];
+        this.wonBoards = new TreeSet<>();
+
         this.emptyBoard();
+        for (int i = 0; i < 9; i++) {
+            localBoardWins[i] = new Win();
+        }
     }
 
     public String invertPlayer(String player) {
@@ -48,7 +57,8 @@ public class Board {
         } catch (GameException e) {
             System.out.println(e.getMessage());
         }
-        return board[loc[0]][loc[1]][loc[2]].equals(".");
+        boolean inWonBoard = (wonBoards.contains(location[0]-1));
+        return (board[loc[0]][loc[1]][loc[2]].equals(".") && !inWonBoard);
     }
 
     public int getNumberOfValidMoves() {
@@ -58,6 +68,16 @@ public class Board {
                 if (isValidMove(new int[]{i, j})) {numberOfValidMoves++;}
             }
         }
+        return numberOfValidMoves;
+    }
+
+    public int getNumberOfValidMoves(int board) {
+        int numberOfValidMoves = 0;
+
+        for (int j = 1; j < 10; j++) {
+            if (isValidMove(new int[]{board, j})) {numberOfValidMoves++;}
+        }
+
         return numberOfValidMoves;
     }
 
@@ -92,35 +112,41 @@ public class Board {
         return lastMoveArr;
     }
 
-    public Win isWin() {
-        Win win = new Win();
-        win.setWinConditions(false);
+    public Win[] getWins() {
         for (String player : new String[]{"X","O"}) {
             for (int i = 0; i < board.length; i++) {
-
+                if (wonBoards.contains(i)) {
+                    continue;
+                }
+                Win win = new Win();
                 for (int j = 0; j < board[i].length; j++) {
                     if (board[i][j][0].equals(player) && board[i][j][1].equals(player) && board[i][j][2].equals(player)) {
-                        win.setWinConditions(true, "win", player);
-                        return win;
+                        win.setWinConditions(i,true, "win", player);
+                        localBoardWins[i] = win;
+                        wonBoards.add(i);
                     } else if (board[i][0][j].equals(player) && board[i][1][j].equals(player) && board[i][2][j].equals(player)){
-                        win.setWinConditions(true, "win", player);
-                        return win;
+                        win.setWinConditions(i,true, "win", player);
+                        localBoardWins[i] = win;
+                        wonBoards.add(i);
                     }
                 }
                 if ((board[i][0][0].equals(player) && board[i][1][1].equals(player) && board[i][2][2].equals(player))) {
-                    win.setWinConditions(true, "win", player);
-                    return win;
+                    win.setWinConditions(i,true, "win", player);
+                    localBoardWins[i] = win;
+                    wonBoards.add(i);
                 } else if ((board[i][0][2].equals(player) && board[i][1][1].equals(player) && board[i][2][0].equals(player))) {
-                    win.setWinConditions(true, "win", player);
-                    return win;
+                    win.setWinConditions(i,true, "win", player);
+                    localBoardWins[i] = win;
+                    wonBoards.add(i);
+                }
+                if (getNumberOfValidMoves(i+1) == 0) {
+                    win.setWinConditions(i,false, "draw");
+                    localBoardWins[i] = win;
+                    wonBoards.add(i);
                 }
             }
         }
-        if (getNumberOfValidMoves() == 0) {
-            win.setWinConditions(true, "draw");
-            return win;
-        }
-        return win;
+        return localBoardWins;
     }
 
     public void emptyBoard() {
@@ -135,6 +161,7 @@ public class Board {
     public String whoseTurn() {
         return turn;
     }
+
     public String toString() {
         StringBuilder output = new StringBuilder();
         String[] outputArr = new String[27];
