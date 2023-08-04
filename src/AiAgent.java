@@ -19,7 +19,7 @@ public class AiAgent {
     private int[] getRandomMove() throws GameException {
         int[][] validMoves = board.getValidMovesAI();
         if (validMoves.length < 1) {
-            throw new GameException("No more valid moves.");
+            throw new GameException("No more valid moves. Draw.");
         }
         return validMoves[rand.nextInt(validMoves.length)];
     }

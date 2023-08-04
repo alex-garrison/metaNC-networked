@@ -45,6 +45,6 @@ public class Win {
     }
 
     public String toString() {
-        return "Board : " + localBoard + " Win : " + isWin;
+        return "Board : " + localBoard + " Win : " + isWin + " Win type " + winType;
     }
 }

@@ -31,7 +31,7 @@ public class Game {
         } else {
             board.setStarter(PlayerInput.getStarter(scan));
         }
-        
+
         while (true) {
             isWon = checkWin();
             if (isWon) {
@@ -45,7 +45,6 @@ public class Game {
                     moveLocation = ai.getMove();
                 } catch (GameException e) {
                     System.out.println(e.getMessage());
-
                     return;
                 }
             }
@@ -65,11 +64,10 @@ public class Game {
                 isHuman = !isHuman;
             }
 
-            printWins();
-            System.out.println(board.toString(moveLocation));
+            if (!isAIVAI) System.out.println(board.toString(moveLocation));
         }
 
-        printWins();
+//         printWins();
         if (isAIVAI) System.out.println(board.toString(moveLocation));
     }
 
@@ -102,7 +100,7 @@ public class Game {
             }
             for (int j = 0; j < 3; j++) {
                 if (localBoardWins[j].getWinner().equals(player) && localBoardWins[j+3].getWinner().equals(player) && localBoardWins[j+6].getWinner().equals(player)) {
-                    System.out.println("Player " + player + " vertical win in column " + j);
+                    System.out.println("Player " + player + " vertical win in column " + (j+1));
                     return true;
                 }
             }
@@ -112,6 +110,7 @@ public class Game {
                 return true;
             }
         }
+        if (board.getNumberOfValidMovesAI() < 1) { System.out.println("No more valid moves. Draw."); return true; }
         return false;
 
     }

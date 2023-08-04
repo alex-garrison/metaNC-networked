@@ -6,7 +6,7 @@ public class Main {
 
         Game game = new Game(scan);
 
-        game.setMode("AI");
+        game.setMode("AIVAI");
 
         try {
             game.play();

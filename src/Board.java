@@ -65,11 +65,11 @@ public class Board {
         return (board[loc[0]][loc[1]][loc[2]].equals("."));
     }
 
-    public int getNumberOfValidMoves() {
+    public int getNumberOfValidMovesAI() {
         int numberOfValidMoves = 0;
         for (int i = 1; i < 10; i++) {
             for (int j = 1; j < 10; j++) {
-                if (isValidMove(new int[]{i, j})) {numberOfValidMoves++;}
+                if (isValidMove(new int[]{i, j}) && !isInWonBoard(new int[]{i, j})) {numberOfValidMoves++;}
             }
         }
         return numberOfValidMoves;
@@ -86,7 +86,7 @@ public class Board {
     }
 
     public int[][] getValidMovesAI() {
-        int numberOfValidMoves = getNumberOfValidMoves();
+        int numberOfValidMoves = getNumberOfValidMovesAI();
 
         int[][] validMoves = new int[numberOfValidMoves][2];
         int counter = 0;
@@ -119,7 +119,7 @@ public class Board {
 
     public Win[] getWins() {
         for (String player : new String[]{"X","O"}) {
-            for (int i = 0; i < board.length; i++) {
+            boardLoop: for (int i = 0; i < board.length; i++) {
                 if (wonBoards.contains(i)) {
                     continue;
                 }
@@ -127,27 +127,22 @@ public class Board {
                 for (int j = 0; j < board[i].length; j++) {
                     if (board[i][j][0].equals(player) && board[i][j][1].equals(player) && board[i][j][2].equals(player)) {
                         win.setWinConditions(i,true, "win", player);
-                        localBoardWins[i] = win;
-                        wonBoards.add(i);
+                        localBoardWins[i] = win; wonBoards.add(i); continue boardLoop;
                     } else if (board[i][0][j].equals(player) && board[i][1][j].equals(player) && board[i][2][j].equals(player)){
                         win.setWinConditions(i,true, "win", player);
-                        localBoardWins[i] = win;
-                        wonBoards.add(i);
+                        localBoardWins[i] = win; wonBoards.add(i); continue boardLoop;
                     }
                 }
                 if ((board[i][0][0].equals(player) && board[i][1][1].equals(player) && board[i][2][2].equals(player))) {
                     win.setWinConditions(i,true, "win", player);
-                    localBoardWins[i] = win;
-                    wonBoards.add(i);
+                    localBoardWins[i] = win; wonBoards.add(i); continue;
                 } else if ((board[i][0][2].equals(player) && board[i][1][1].equals(player) && board[i][2][0].equals(player))) {
                     win.setWinConditions(i,true, "win", player);
-                    localBoardWins[i] = win;
-                    wonBoards.add(i);
+                    localBoardWins[i] = win; wonBoards.add(i); continue;
                 }
                 if (getNumberOfValidMoves(i+1) == 0) {
                     win.setWinConditions(i,true, "draw");
-                    localBoardWins[i] = win;
-                    wonBoards.add(i);
+                    localBoardWins[i] = win; wonBoards.add(i);
                 }
             }
         }
