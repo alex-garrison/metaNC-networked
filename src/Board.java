@@ -33,7 +33,7 @@ public class Board {
 
                 int[] loc = resolveLocation(location);
 
-                if (isValidMove(location)) {
+                if (isValidMove(location) && !isInWonBoard(location)) {
                     board[loc[0]][loc[1]][loc[2]] = player;
                     lastMove = location;
                 } else {
@@ -50,6 +50,10 @@ public class Board {
 
     }
 
+    private boolean isInWonBoard(int[] location) {
+        return (wonBoards.contains(location[0]-1));
+    }
+
     public boolean isValidMove(int[] location) {
         int[] loc = new int[3];
         try {
@@ -58,7 +62,7 @@ public class Board {
             System.out.println(e.getMessage());
         }
         boolean inWonBoard = (wonBoards.contains(location[0]-1));
-        return (board[loc[0]][loc[1]][loc[2]].equals(".") && !inWonBoard);
+        return (board[loc[0]][loc[1]][loc[2]].equals("."));
     }
 
     public int getNumberOfValidMoves() {
@@ -81,7 +85,7 @@ public class Board {
         return numberOfValidMoves;
     }
 
-    public int[][] getValidMoves() {
+    public int[][] getValidMovesAI() {
         int numberOfValidMoves = getNumberOfValidMoves();
 
         int[][] validMoves = new int[numberOfValidMoves][2];
@@ -89,8 +93,9 @@ public class Board {
 
         for (int i = 1; i < 10; i++) {
             for (int j = 1; j < 10; j++) {
-                if (isValidMove(new int[]{i, j})) {
-                    validMoves[counter] = new int[]{i,j};
+                int[] newLoc = new int[]{i,j};
+                if (isValidMove(newLoc) && !isInWonBoard(newLoc)) {
+                    validMoves[counter] = newLoc;
                     counter++;
                 }
             }
@@ -140,7 +145,7 @@ public class Board {
                     wonBoards.add(i);
                 }
                 if (getNumberOfValidMoves(i+1) == 0) {
-                    win.setWinConditions(i,false, "draw");
+                    win.setWinConditions(i,true, "draw");
                     localBoardWins[i] = win;
                     wonBoards.add(i);
                 }

@@ -11,7 +11,6 @@ public class Win {
         this.winner = "No winner";
         this.winType = "No win";
     }
-
     public int getLocalBoard() {
         return localBoard;
     }
