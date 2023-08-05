@@ -2,7 +2,7 @@ import java.util.Arrays;
 import java.util.TreeSet;
 
 public class Board {
-    private final String[][][] board;
+    public String[][][] board;
     public String turn;
     private int[] lastMove;
     private Win[] localBoardWins;
@@ -28,12 +28,11 @@ public class Board {
     }
 
     public void turn(String player, int[] location) throws GameException {
-
             if (player.equals(turn)) {
 
                 int[] loc = resolveLocation(location);
 
-                if (isValidMove(location) && !isInWonBoard(location)) {
+                if (isValidMove(location) && !isInWonBoard(location) && isInCorrectLocalBoard(location)) {
                     board[loc[0]][loc[1]][loc[2]] = player;
                     lastMove = location;
                 } else {
@@ -50,6 +49,15 @@ public class Board {
 
     }
 
+    private boolean isInCorrectLocalBoard(int[] location) {
+        if (lastMove[0] == -1) {
+            return true;
+        } else if (wonBoards.contains(lastMove[1]-1)) {
+            return true;
+        }
+        return (location[0]==lastMove[1]);
+
+    }
     private boolean isInWonBoard(int[] location) {
         return (wonBoards.contains(location[0]-1));
     }
@@ -61,7 +69,6 @@ public class Board {
         } catch (GameException e) {
             System.out.println(e.getMessage());
         }
-        boolean inWonBoard = (wonBoards.contains(location[0]-1));
         return (board[loc[0]][loc[1]][loc[2]].equals("."));
     }
 
@@ -69,7 +76,10 @@ public class Board {
         int numberOfValidMoves = 0;
         for (int i = 1; i < 10; i++) {
             for (int j = 1; j < 10; j++) {
-                if (isValidMove(new int[]{i, j}) && !isInWonBoard(new int[]{i, j})) {numberOfValidMoves++;}
+                int[] newLoc = new int[]{i, j};
+                if (isValidMove(newLoc) && !isInWonBoard(newLoc) && isInCorrectLocalBoard(newLoc)) {
+                    numberOfValidMoves++;
+                }
             }
         }
         return numberOfValidMoves;
@@ -94,7 +104,7 @@ public class Board {
         for (int i = 1; i < 10; i++) {
             for (int j = 1; j < 10; j++) {
                 int[] newLoc = new int[]{i,j};
-                if (isValidMove(newLoc) && !isInWonBoard(newLoc)) {
+                if (isValidMove(newLoc) && !isInWonBoard(newLoc) && isInCorrectLocalBoard(newLoc)) {
                     validMoves[counter] = newLoc;
                     counter++;
                 }
@@ -117,6 +127,18 @@ public class Board {
         return lastMoveArr;
     }
 
+    public void setBoardWinner(int boardNum) {
+        for (int i = 0; i < board[boardNum].length; i++) {
+            for (int j = 0; j < board[boardNum][i].length; j++) {
+                if (i == 1 && j == 1) {
+                    board[boardNum][i][j] = localBoardWins[boardNum].getWinner();
+                } else {
+                    board[boardNum][i][j] = "-";
+                }
+            }
+        }
+    }
+
     public Win[] getWins() {
         for (String player : new String[]{"X","O"}) {
             boardLoop: for (int i = 0; i < board.length; i++) {
@@ -127,22 +149,22 @@ public class Board {
                 for (int j = 0; j < board[i].length; j++) {
                     if (board[i][j][0].equals(player) && board[i][j][1].equals(player) && board[i][j][2].equals(player)) {
                         win.setWinConditions(i,true, "win", player);
-                        localBoardWins[i] = win; wonBoards.add(i); continue boardLoop;
+                        localBoardWins[i] = win; wonBoards.add(i); setBoardWinner(i); continue boardLoop;
                     } else if (board[i][0][j].equals(player) && board[i][1][j].equals(player) && board[i][2][j].equals(player)){
                         win.setWinConditions(i,true, "win", player);
-                        localBoardWins[i] = win; wonBoards.add(i); continue boardLoop;
+                        localBoardWins[i] = win; wonBoards.add(i); setBoardWinner(i); continue boardLoop;
                     }
                 }
                 if ((board[i][0][0].equals(player) && board[i][1][1].equals(player) && board[i][2][2].equals(player))) {
                     win.setWinConditions(i,true, "win", player);
-                    localBoardWins[i] = win; wonBoards.add(i); continue;
+                    localBoardWins[i] = win; wonBoards.add(i); setBoardWinner(i); continue;
                 } else if ((board[i][0][2].equals(player) && board[i][1][1].equals(player) && board[i][2][0].equals(player))) {
                     win.setWinConditions(i,true, "win", player);
-                    localBoardWins[i] = win; wonBoards.add(i); continue;
+                    localBoardWins[i] = win; wonBoards.add(i); setBoardWinner(i); continue;
                 }
                 if (getNumberOfValidMoves(i+1) == 0) {
-                    win.setWinConditions(i,true, "draw");
-                    localBoardWins[i] = win; wonBoards.add(i);
+                    win.setWinConditions(i,true, "draw", "D");
+                    localBoardWins[i] = win; wonBoards.add(i); setBoardWinner(i);
                 }
             }
         }
@@ -165,12 +187,19 @@ public class Board {
     public String toString() {
         StringBuilder output = new StringBuilder();
         String[] outputArr = new String[27];
+        String boardChar = "";
         int counter = 0;
 
         for (int j = 0; j < 3; j++) {
             for (int i = 0; i < 9; i++) {
                 for (int k = 0; k < 3; k++) {
-                    output.append(board[i][j][k]).append(" ");
+                    boardChar = switch (boardChar) {
+                        case "X" -> ConsoleColours.BLUE + boardChar + ConsoleColours.RESET;
+                        case "O" -> ConsoleColours.GREEN + boardChar + ConsoleColours.RESET;
+                        case "D" -> ConsoleColours.PURPLE + boardChar + ConsoleColours.RESET;
+                        default -> board[i][j][k];
+                    };
+                    output.append(boardChar).append(" ");
                 }
                 outputArr[counter] = output.toString();
                 counter++;

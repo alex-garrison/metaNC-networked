@@ -22,7 +22,7 @@ public class Game {
         boolean isWon;
         boolean isHuman = !(mode.equals("AIVAI"));
         boolean isAIVAI = !isHuman;
-        int[] moveLocation = new int[2];
+        int[] moveLocation;
         AiAgent ai = new AiAgent(board);
         board.emptyBoard();
 
@@ -64,11 +64,11 @@ public class Game {
                 isHuman = !isHuman;
             }
 
-            if (!isAIVAI) System.out.println(board.toString(moveLocation));
+            System.out.println(board.toString(moveLocation));
         }
 
 //         printWins();
-        if (isAIVAI) System.out.println(board.toString(moveLocation));
+        System.out.println(board);
     }
 
     public void setMode(String newMode) {
@@ -110,7 +110,9 @@ public class Game {
                 return true;
             }
         }
-        if (board.getNumberOfValidMovesAI() < 1) { System.out.println("No more valid moves. Draw."); return true; }
+        if (board.getNumberOfValidMovesAI() < 1) {
+            System.out.println("No more valid moves. Draw."); return true;
+        }
         return false;
 
     }
