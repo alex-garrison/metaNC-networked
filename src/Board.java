@@ -2,8 +2,8 @@ import java.util.Arrays;
 import java.util.TreeSet;
 
 public class Board {
-    public String[][][] board;
-    public String turn;
+    private String[][][] board;
+    private String turn;
     private int[] lastMove;
     private Win[] localBoardWins;
     private TreeSet<Integer> wonBoards;
@@ -55,7 +55,8 @@ public class Board {
         } else if (wonBoards.contains(lastMove[1]-1)) {
             return true;
         }
-        return (location[0]==lastMove[1]);
+        boolean isInCorrectLocalBoard = (location[0]==lastMove[1]);
+        return isInCorrectLocalBoard;
 
     }
     private boolean isInWonBoard(int[] location) {
@@ -187,18 +188,19 @@ public class Board {
     public String toString() {
         StringBuilder output = new StringBuilder();
         String[] outputArr = new String[27];
-        String boardChar = "";
         int counter = 0;
 
         for (int j = 0; j < 3; j++) {
             for (int i = 0; i < 9; i++) {
                 for (int k = 0; k < 3; k++) {
-                    boardChar = switch (boardChar) {
-                        case "X" -> ConsoleColours.BLUE + boardChar + ConsoleColours.RESET;
-                        case "O" -> ConsoleColours.GREEN + boardChar + ConsoleColours.RESET;
-                        case "D" -> ConsoleColours.PURPLE + boardChar + ConsoleColours.RESET;
-                        default -> board[i][j][k];
-                    };
+                    String boardChar = board[i][j][k];
+                    if (boardChar.equals("X")) {
+                        boardChar = ConsoleColours.BLUE + boardChar + ConsoleColours.RESET;
+                    } else if (boardChar.equals("O")) {
+                        boardChar = ConsoleColours.GREEN + boardChar + ConsoleColours.RESET;
+                    } else if (boardChar.equals("D")) {
+                        boardChar = ConsoleColours.PURPLE + boardChar + ConsoleColours.RESET;
+                    }
                     output.append(boardChar).append(" ");
                 }
                 outputArr[counter] = output.toString();

@@ -10,7 +10,7 @@ public class Game {
         board = new Board();
     }
 
-    public void play() throws GameException, InterruptedException {
+    public void play() throws GameException {
         if (mode.isEmpty()) {
             throw new GameException("Mode not set.");
         } else {
@@ -64,10 +64,8 @@ public class Game {
                 isHuman = !isHuman;
             }
 
-            System.out.println(board.toString(moveLocation));
+            if (!isAIVAI) System.out.println(board.toString(moveLocation));
         }
-
-//         printWins();
         System.out.println(board);
     }
 
