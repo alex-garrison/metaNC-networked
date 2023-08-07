@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="412dbc24-db8c-4dbf-8797-c3a3b012b83b" name="Changes" comment="initial GUI frame added">
+    <list default="true" id="412dbc24-db8c-4dbf-8797-c3a3b012b83b" name="Changes" comment="added 9x9 nested grid">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/GUI.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/GUI.java" afterDir="false" />
     </list>
@@ -109,7 +109,14 @@
       <option name="project" value="LOCAL" />
       <updated>1691250409528</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="added 9x9 nested grid">
+      <created>1691426614981</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1691426614981</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -166,7 +173,8 @@
     <MESSAGE value="bug fixes, added better draw state" />
     <MESSAGE value="added move restriction based on the previous move" />
     <MESSAGE value="initial GUI frame added" />
-    <option name="LAST_COMMIT_MESSAGE" value="initial GUI frame added" />
+    <MESSAGE value="added 9x9 nested grid" />
+    <option name="LAST_COMMIT_MESSAGE" value="added 9x9 nested grid" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
