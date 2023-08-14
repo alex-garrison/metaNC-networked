@@ -29,11 +29,12 @@ public class Game {
         if (isAIVAI) {
             board.setStarter(ai.getStarter());
         } else {
-            board.setStarter(PlayerInput.getStarter(scan));
+            board.setStarter("X");
         }
 
         while (true) {
             isWon = checkWin();
+
             if (isWon) {
                 break;
             }

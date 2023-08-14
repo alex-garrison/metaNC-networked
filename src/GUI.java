@@ -4,6 +4,7 @@ import javax.swing.border.LineBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.lang.reflect.InvocationTargetException;
 
 public class GUI extends JFrame {
     public static GUI frame;
@@ -61,6 +62,7 @@ public class GUI extends JFrame {
                 cell.setContentAreaFilled(false);
                 cell.setForeground(Color.BLACK);
                 cell.setFont(new Font("monospaced", Font.PLAIN, 40));
+                cell.addActionListener(new CellClickListener(boardIndex, row, col));
                 boardPanel.add(cell);
                 cells[boardIndex][row][col] = cell;
             }
@@ -108,14 +110,18 @@ public class GUI extends JFrame {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            JButton cell = (JButton) e.getSource();
+            JButton cell = cells[boardIndex][row][col];
+            cell.setText("X");
+            cell.setForeground(Color.RED);
         }
     }
 
     private class NewGameClickListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
-            JButton newGame = (JButton) e.getSource();
+            synchronized (newGameButton) {
+                newGameButton.notify();
+            }
         }
     }
 
@@ -126,13 +132,41 @@ public class GUI extends JFrame {
         }
     }
 
-    public static void main(String[] args) {
+    public void waitForNewGame() {
+        synchronized(newGameButton) {
+            try {
+                newGameButton.wait();
+            } catch (Exception e) {
+                System.out.println(e.getMessage());
+            }
+        }
+    }
+
+    public void showBoard(Board board) {
+        String[][][] boardArr = board.getBoard();
+        for (int boardIndex = 0; boardIndex < boardArr.length; boardIndex++) {
+            for (int row = 0; row < boardArr[boardIndex].length; row++) {
+                for (int col = 0; col < boardArr[boardIndex][row].length; col++) {
+                    cells[boardIndex][row][col].setText(boardArr[boardIndex][row][col]);
+                }
+            }
+        }
+    }
+
+    public void setBottomLabel(String text) {
+        bottomLabel.setText(text);
+    }
+
+    public String getMode() {
+        return (String) selectMode.getSelectedItem();
+    }
+
+    public static void startGUI() throws InterruptedException, InvocationTargetException {
         System.setProperty( "apple.awt.application.appearance", "system" );
 
-        SwingUtilities.invokeLater(() -> {
+        SwingUtilities.invokeAndWait(() -> {
             frame = new GUI();
             frame.setVisible(true);
         });
-
     }
 }

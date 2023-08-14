@@ -70,7 +70,7 @@ public class Board {
         } catch (GameException e) {
             System.out.println(e.getMessage());
         }
-        return (board[loc[0]][loc[1]][loc[2]].equals("."));
+        return (board[loc[0]][loc[1]][loc[2]].equals(""));
     }
 
     public int getNumberOfValidMovesAI() {
@@ -175,7 +175,7 @@ public class Board {
     public void emptyBoard() {
         for (int i = 0; i < board.length; i++) {
             for (int j = 0; j < board[i].length; j++) {
-                board[i][j] = new String[] {".", ".", "."};
+                board[i][j] = new String[] {"", "", ""};
             }
         }
         lastMove = new int[]{-1,-1};
@@ -194,13 +194,6 @@ public class Board {
             for (int i = 0; i < 9; i++) {
                 for (int k = 0; k < 3; k++) {
                     String boardChar = board[i][j][k];
-                    if (boardChar.equals("X")) {
-                        boardChar = ConsoleColours.BLUE + boardChar + ConsoleColours.RESET;
-                    } else if (boardChar.equals("O")) {
-                        boardChar = ConsoleColours.GREEN + boardChar + ConsoleColours.RESET;
-                    } else if (boardChar.equals("D")) {
-                        boardChar = ConsoleColours.PURPLE + boardChar + ConsoleColours.RESET;
-                    }
                     output.append(boardChar).append(" ");
                 }
                 outputArr[counter] = output.toString();
@@ -273,6 +266,10 @@ public class Board {
         }
         int col = (location[1]-1) % 3;
         return new int[] {location[0]-1, row, col};
+    }
+
+    public String[][][] getBoard() {
+        return board;
     }
 }
 
