@@ -1,21 +1,19 @@
-import java.util.Scanner;
-
 public class Main {
     public static void main(String[] args) {
-        Scanner scan = new Scanner(System.in);
 
-        Game game = new Game(scan);
-
-        game.setMode(PlayerInput.getMode(scan));
+        Board board = new Board();
+        board.emptyBoard();
 
         try {
-            game.play();
-        } catch (GameException e) {
-            System.out.println(e.getMessage());
-        } catch (InterruptedException e) {
+            GUI.startGUI();
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
 
+        GUI.frame.showBoard(board);
 
+        GUI.frame.waitForNewGame();
+
+        GUI.frame.setBottomLabel(GUI.frame.getMode());
     }
 }

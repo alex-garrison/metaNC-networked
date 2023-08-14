@@ -3,10 +3,16 @@ public class Win {
     private String winner;
     private String winType;
 
+    private int localBoard;
+
     public Win() {
+        this.localBoard = -1;
         this.isWin = false;
         this.winner = "No winner";
         this.winType = "No win";
+    }
+    public int getLocalBoard() {
+        return localBoard;
     }
 
     public boolean isWin() {
@@ -20,18 +26,25 @@ public class Win {
     public String getWinType() {
         return winType;
     }
-    public void setWinConditions(Boolean isWin) {
+    public void setWinConditions(int localBoard, Boolean isWin) {
+        this.localBoard = localBoard;
         this.isWin = isWin;
     }
 
-    public void setWinConditions(Boolean isWin, String winType) {
+    public void setWinConditions(int localBoard, Boolean isWin, String winType) {
+        this.localBoard = localBoard;
         this.isWin = isWin;
         this.winType = winType;
     }
 
-    public void setWinConditions(Boolean isWin, String winType, String winner) {
+    public void setWinConditions(int localBoard, Boolean isWin, String winType, String winner) {
+        this.localBoard = localBoard;
         this.winner = winner;
         this.isWin = isWin;
         this.winType = winType;
+    }
+
+    public String toString() {
+        return "Board : " + localBoard + " Win : " + isWin + " Win type " + winType;
     }
 }
