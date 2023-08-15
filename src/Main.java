@@ -1,6 +1,5 @@
 public class Main {
     public static void main(String[] args) {
-
         Board board = new Board();
         board.emptyBoard();
 
@@ -13,7 +12,13 @@ public class Main {
         GUI.frame.showBoard(board);
 
         GUI.frame.waitForNewGame();
+        Game game = new Game();
+        game.setMode(GUI.frame.getMode());
 
-        GUI.frame.setBottomLabel(GUI.frame.getMode());
+        try {
+            game.play();
+        } catch (GameException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

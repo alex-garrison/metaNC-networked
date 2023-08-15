@@ -17,6 +17,8 @@ public class GUI extends JFrame {
     private JLabel bottomLabel;
     private JButton[][][] cells;
 
+    private int[] currentMove;
+
     public GUI() {
         initGUI();
     }
@@ -81,9 +83,10 @@ public class GUI extends JFrame {
 
         selectMode = new JComboBox<>(new String[]{"PvP", "PvAI", "AIvAI"});
         selectMode.setFont(new Font("Arial", Font.PLAIN, 15));
+        selectMode.setMaximumSize(new Dimension(40, selectMode.getPreferredSize().height));
         selectMode.addActionListener(new SelectModeListener());
 
-        bottomLabel = new JLabel("-");
+        bottomLabel = new JLabel("");
         bottomLabel.setFont(new Font("Arial", Font.PLAIN, 20));
         bottomLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
@@ -111,8 +114,10 @@ public class GUI extends JFrame {
         @Override
         public void actionPerformed(ActionEvent e) {
             JButton cell = cells[boardIndex][row][col];
-            cell.setText("X");
-            cell.setForeground(Color.RED);
+            currentMove = new int[]{boardIndex, row, col};
+            synchronized (cells) {
+                cells.notify();
+            }
         }
     }
 
@@ -142,6 +147,17 @@ public class GUI extends JFrame {
         }
     }
 
+    public int[] waitForMove() {
+        synchronized(cells) {
+            try {
+                cells.wait();
+            } catch (Exception e) {
+                System.out.println(e.getMessage());
+            }
+        }
+        return currentMove;
+    }
+
     public void showBoard(Board board) {
         String[][][] boardArr = board.getBoard();
         for (int boardIndex = 0; boardIndex < boardArr.length; boardIndex++) {
@@ -153,8 +169,36 @@ public class GUI extends JFrame {
         }
     }
 
-    public void setBottomLabel(String text) {
+    public void setBoardColours(Board board) {
+        try {
+            SwingUtilities.invokeAndWait(() -> {
+                Color col;
+                for (int i = 0; i < boardPanels.length; i++) {
+                    if (board.getCorrectLocalBoard() == i && !board.isWon) {
+                        col = Color.BLUE;
+                    } else if (board.isWonBoard(i)) {
+                        col = Color.RED;
+                    } else {
+                        col = Color.WHITE;
+                    }
+                    boardPanels[i].setBackground(col);
+                }
+            });
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void setBottomLabel(String text, boolean error) {
+        Color color = Color.BLACK;
+        if (error) color = Color.RED;
+        bottomLabel.setForeground(color);
         bottomLabel.setText(text);
+    }
+
+    public void clearBottomLabel() {
+        bottomLabel.setForeground(Color.BLACK);
+        bottomLabel.setText("");
     }
 
     public String getMode() {

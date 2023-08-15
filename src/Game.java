@@ -1,12 +1,8 @@
-import java.util.Scanner;
-
 public class Game {
-    private final Scanner scan;
     private final Board board;
     private String mode;
 
-    public Game(Scanner newScan) {
-        scan = newScan;
+    public Game() {
         board = new Board();
     }
 
@@ -18,101 +14,44 @@ public class Game {
         }
     }
 
-    private void gameLoop() throws GameException {
-        boolean isWon;
-        boolean isHuman = !(mode.equals("AIVAI"));
-        boolean isAIVAI = !isHuman;
+    private void gameLoop() {
+        boolean errorOccured = false;
         int[] moveLocation;
-        AiAgent ai = new AiAgent(board);
         board.emptyBoard();
 
-        if (isAIVAI) {
-            board.setStarter(ai.getStarter());
-        } else {
-            board.setStarter("X");
-        }
+        board.setStarter("X");
 
         while (true) {
-            isWon = checkWin();
-
-            if (isWon) {
+            if (board.isWin()) {
+                if (board.winner.equals("Draw")) {
+                    GUI.frame.setBottomLabel("Draw", false);
+                } else {
+                    GUI.frame.setBottomLabel("Player " + board.winner + " wins.", false);
+                }
                 break;
             }
 
-            if (isHuman) {
-                moveLocation = PlayerInput.getMove(scan, board.whoseTurn());
-            } else {
-                try {
-                    moveLocation = ai.getMove();
-                } catch (GameException e) {
-                    System.out.println(e.getMessage());
-                    return;
-                }
-            }
+            GUI.frame.showBoard(board);
+            GUI.frame.setBoardColours(board);
+
+            moveLocation = GUI.frame.waitForMove();
 
             try {
                 board.turn(board.whoseTurn(), moveLocation);
             } catch (GameException e) {
-                System.out.println(e.getMessage());
-                continue;
+                GUI.frame.setBottomLabel(e.getMessage(), true);
+                errorOccured = true;
             }
 
-            if (!isHuman && !isAIVAI) {
-                System.out.println("Player " + board.invertPlayer(board.whoseTurn()) + " moved at " + moveLocation[0] + "/" + moveLocation[1]);
+            if (!errorOccured) {
+                GUI.frame.clearBottomLabel();
             }
-
-            if (mode.equals("AI")) {
-                isHuman = !isHuman;
-            }
-
-            if (!isAIVAI) System.out.println(board.toString(moveLocation));
         }
-        System.out.println(board);
+        GUI.frame.showBoard(board);
+        GUI.frame.setBoardColours(board);
     }
 
     public void setMode(String newMode) {
         mode = newMode;
-    }
-
-    private void printWins() {
-        Win[] localBoardWins = board.getWins();
-        for (Win localBoard : localBoardWins) {
-            if (localBoard.isWin()) {
-                if (localBoard.getWinType().equals("draw")) {
-                    System.out.println("Draw in board " + (localBoard.getLocalBoard() + 1));
-                } else {
-                    System.out.println("Player " + localBoard.getWinner() + " wins in board " + (localBoard.getLocalBoard() + 1));
-                }
-            }
-        }
-    }
-
-    private boolean checkWin() {
-        Win[] localBoardWins = board.getWins();
-
-        for (String player : new String[]{"X", "O"}) {
-            for (int i = 0; i < 9; i = i + 3) {
-                if (localBoardWins[i].getWinner().equals(player) && localBoardWins[i+1].getWinner().equals(player) && localBoardWins[i+2].getWinner().equals(player)) {
-                    System.out.println("Player " + player + " horizonal win in row " + ((i / 3) + 1));
-                    return true;
-                }
-            }
-            for (int j = 0; j < 3; j++) {
-                if (localBoardWins[j].getWinner().equals(player) && localBoardWins[j+3].getWinner().equals(player) && localBoardWins[j+6].getWinner().equals(player)) {
-                    System.out.println("Player " + player + " vertical win in column " + (j+1));
-                    return true;
-                }
-            }
-            if (    (localBoardWins[0].getWinner().equals(player) && localBoardWins[4].getWinner().equals(player) && localBoardWins[8].getWinner().equals(player))
-                    || (localBoardWins[2].getWinner().equals(player) && localBoardWins[4].getWinner().equals(player) && localBoardWins[6].getWinner().equals(player))) {
-                System.out.println("Player " + player + " diagonal win");
-                return true;
-            }
-        }
-        if (board.getNumberOfValidMovesAI() < 1) {
-            System.out.println("No more valid moves. Draw."); return true;
-        }
-        return false;
-
     }
 }

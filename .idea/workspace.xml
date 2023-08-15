@@ -23,7 +23,7 @@
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="test_uNC" />
+        <entry key="$PROJECT_DIR$" value="GUI_mockup" />
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -126,7 +126,14 @@
       <option name="project" value="LOCAL" />
       <updated>1691427751006</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="added example functionality to interactive elements">
+      <created>1692053462110</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1692053462110</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -143,7 +150,7 @@
                   <entry key="branch">
                     <value>
                       <list>
-                        <option value="GUI_mockup" />
+                        <option value="GUI_testing" />
                       </list>
                     </value>
                   </entry>
