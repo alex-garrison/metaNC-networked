@@ -1,12 +1,11 @@
-import java.util.Arrays;
 import java.util.TreeSet;
 
 public class Board {
-    private String[][][] board;
+    private final String[][][] board;
     private String turn;
     private int[] lastMove;
-    private Win[] localBoardWins;
-    private TreeSet<Integer> wonBoards;
+    public Win[] localBoardWins;
+    private final TreeSet<Integer> wonBoards;
 
     public boolean isWon;
     public String winner;
@@ -39,15 +38,15 @@ public class Board {
                     board[location[0]][location[1]][location[2]] = player;
                     lastMove = location;
                 } else {
-                    throw new GameException("Move not valid.");
+                    throw new GameException("Move not valid");
                 }
 
                 turn = invertPlayer(turn);
 
             } else if (turn.isEmpty()) {
-                throw new GameException("Starter player has not been set.");
+                throw new GameException("Starter player has not been set");
             } else {
-                throw new GameException("It is not player " + player + "'s turn.");
+                throw new GameException("It is not player " + player + "'s turn");
             }
 
     }
@@ -59,8 +58,7 @@ public class Board {
         } else if (wonBoards.contains(invResvLoc)) {
             return true;
         }
-        boolean isInCorrectLocalBoard = (location[0]==invResvLoc);
-        return isInCorrectLocalBoard;
+        return (location[0]==invResvLoc);
     }
 
     public int getCorrectLocalBoard() {
@@ -116,12 +114,14 @@ public class Board {
         int[][] validMoves = new int[numberOfValidMoves][2];
         int counter = 0;
 
-        for (int i = 1; i < 10; i++) {
-            for (int j = 1; j < 10; j++) {
-                int[] newLoc = new int[]{i,j};
-                if (isValidMove(newLoc) && !isInWonBoard(newLoc) && isInCorrectLocalBoard(newLoc)) {
-                    validMoves[counter] = newLoc;
-                    counter++;
+        for (int boardIndex = 0; boardIndex < 9; boardIndex++) {
+            for (int row = 0; row < 3; row++) {
+                for (int col = 0; col < 3; col++) {
+                    int[] newLoc = new int[]{boardIndex, row, col};
+                    if (isValidMove(newLoc) && !isInWonBoard(newLoc) && isInCorrectLocalBoard(newLoc)) {
+                        validMoves[counter] = newLoc;
+                        counter++;
+                    }
                 }
             }
         }
