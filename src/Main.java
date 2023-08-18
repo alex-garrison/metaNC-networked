@@ -16,7 +16,5 @@ public class Main {
             new NewGameLoop(gameLoopThread);
             GUI.frame.resetBoard();
         }
-
-
     }
 }

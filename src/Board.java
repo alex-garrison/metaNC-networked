@@ -6,6 +6,7 @@ public class Board {
     private int[] lastMove;
     public Win[] localBoardWins;
     private final TreeSet<Integer> wonBoards;
+    private final TreeSet<Integer> openBoards;
 
     public boolean isWon;
     public String winner;
@@ -14,6 +15,7 @@ public class Board {
         this.board = new String[9][3][3];
         this.localBoardWins = new Win[9];
         this.wonBoards = new TreeSet<>();
+        this.openBoards = new TreeSet<>();
 
         this.emptyBoard();
         for (int i = 0; i < 9; i++) {
@@ -48,25 +50,26 @@ public class Board {
             } else {
                 throw new GameException("It is not player " + player + "'s turn");
             }
-
     }
 
     private boolean isInCorrectLocalBoard(int[] location) {
-        int invResvLoc = lastMove[1] * 3 + lastMove[2];
+        int inverseResolvedLoc = lastMove[1] * 3 + lastMove[2];
         if (lastMove[0] == -1) {
             return true;
-        } else if (wonBoards.contains(invResvLoc)) {
+        } else if (wonBoards.contains(inverseResolvedLoc)) {
             return true;
         }
-        return (location[0]==invResvLoc);
+        return (location[0]==inverseResolvedLoc);
     }
 
     public int getCorrectLocalBoard() {
-        int invResvLoc = lastMove[1] * 3 + lastMove[2];
-        if (isWonBoard(invResvLoc)) {
+        int inverseResolvedLoc = lastMove[1] * 3 + lastMove[2];
+        if (isWonBoard(inverseResolvedLoc)) {
+            return -1;
+        } else if (inverseResolvedLoc < 0) {
             return -1;
         } else {
-            return invResvLoc;
+            return inverseResolvedLoc;
         }
     }
     public boolean isInWonBoard(int[] location) {
@@ -83,10 +86,23 @@ public class Board {
 
     public int getNumberOfValidMovesAI() {
         int numberOfValidMoves = 0;
-        for (int boardIndex = 0; boardIndex < 9; boardIndex++) {
+
+        int correctLocalBoard = getCorrectLocalBoard();
+        if (correctLocalBoard == -1) {
+            for (Integer openBoard: openBoards) {
+                for (int row = 0; row < 3; row++) {
+                    for (int col = 0; col < 3; col++) {
+                        int[] newLoc = new int[]{openBoard, row, col};
+                        if (isValidMove(newLoc) && !isInWonBoard(newLoc) && isInCorrectLocalBoard(newLoc)) {
+                            numberOfValidMoves++;
+                        }
+                    }
+                }
+            }
+        } else {
             for (int row = 0; row < 3; row++) {
                 for (int col = 0; col < 3; col++) {
-                    int[] newLoc = new int[]{boardIndex, row, col};
+                    int[] newLoc = new int[]{correctLocalBoard, row, col};
                     if (isValidMove(newLoc) && !isInWonBoard(newLoc) && isInCorrectLocalBoard(newLoc)) {
                         numberOfValidMoves++;
                     }
@@ -110,14 +126,27 @@ public class Board {
 
     public int[][] getValidMovesAI() {
         int numberOfValidMoves = getNumberOfValidMovesAI();
+        int correctLocalBoard = getCorrectLocalBoard();
 
         int[][] validMoves = new int[numberOfValidMoves][2];
         int counter = 0;
 
-        for (int boardIndex = 0; boardIndex < 9; boardIndex++) {
+        if (correctLocalBoard == -1) {
+            for (Integer openBoard: openBoards) {
+                for (int row = 0; row < 3; row++) {
+                    for (int col = 0; col < 3; col++) {
+                        int[] newLoc = new int[]{openBoard, row, col};
+                        if (isValidMove(newLoc) && !isInWonBoard(newLoc) && isInCorrectLocalBoard(newLoc)) {
+                            validMoves[counter] = newLoc;
+                            counter++;
+                        }
+                    }
+                }
+            }
+        } else {
             for (int row = 0; row < 3; row++) {
                 for (int col = 0; col < 3; col++) {
-                    int[] newLoc = new int[]{boardIndex, row, col};
+                    int[] newLoc = new int[]{correctLocalBoard, row, col};
                     if (isValidMove(newLoc) && !isInWonBoard(newLoc) && isInCorrectLocalBoard(newLoc)) {
                         validMoves[counter] = newLoc;
                         counter++;
@@ -142,22 +171,22 @@ public class Board {
                 for (int j = 0; j < board[i].length; j++) {
                     if (board[i][j][0].equals(player) && board[i][j][1].equals(player) && board[i][j][2].equals(player)) {
                         win.setWinConditions(i,true, "win", player);
-                        localBoardWins[i] = win; wonBoards.add(i); continue boardLoop;
+                        localBoardWins[i] = win; wonBoards.add(i); openBoards.remove(i); continue boardLoop;
                     } else if (board[i][0][j].equals(player) && board[i][1][j].equals(player) && board[i][2][j].equals(player)){
                         win.setWinConditions(i,true, "win", player);
-                        localBoardWins[i] = win; wonBoards.add(i); continue boardLoop;
+                        localBoardWins[i] = win; wonBoards.add(i); openBoards.remove(i); continue boardLoop;
                     }
                 }
                 if ((board[i][0][0].equals(player) && board[i][1][1].equals(player) && board[i][2][2].equals(player))) {
                     win.setWinConditions(i,true, "win", player);
-                    localBoardWins[i] = win; wonBoards.add(i); continue;
+                    localBoardWins[i] = win; wonBoards.add(i); openBoards.remove(i); continue;
                 } else if ((board[i][0][2].equals(player) && board[i][1][1].equals(player) && board[i][2][0].equals(player))) {
                     win.setWinConditions(i,true, "win", player);
-                    localBoardWins[i] = win; wonBoards.add(i); continue;
+                    localBoardWins[i] = win; wonBoards.add(i); openBoards.remove(i); continue;
                 }
                 if (getNumberOfValidMoves(i) == 0) {
                     win.setWinConditions(i,true, "draw", "D");
-                    localBoardWins[i] = win; wonBoards.add(i);
+                    localBoardWins[i] = win; wonBoards.add(i); openBoards.remove(i);
                 }
             }
         }
@@ -194,6 +223,7 @@ public class Board {
 
     public void emptyBoard() {
         for (int i = 0; i < board.length; i++) {
+            openBoards.add(i);
             for (int j = 0; j < board[i].length; j++) {
                 board[i][j] = new String[] {"", "", ""};
             }

@@ -106,7 +106,6 @@ public class GUI extends JFrame {
         selectMode = new JComboBox<>(new String[]{"PvP", "PvAI", "AIvAI"});
         selectMode.setFont(new Font("Arial", Font.PLAIN, 15));
         selectMode.setMaximumSize(new Dimension(40, selectMode.getPreferredSize().height));
-        selectMode.addActionListener(new SelectModeListener());
 
         bottomLabel = new JLabel("");
         bottomLabel.setFont(new Font("Arial", Font.PLAIN, 20));
@@ -153,13 +152,6 @@ public class GUI extends JFrame {
         }
     }
 
-    private class SelectModeListener implements ActionListener {
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            JComboBox selectMode = (JComboBox) e.getSource();
-        }
-    }
-
     public void waitForNewGame() {
         synchronized(newGameButton) {
             try {
@@ -179,7 +171,6 @@ public class GUI extends JFrame {
                 gameLoop.gameLoopExecuting = false;
                 return null;
             }
-
         }
         return currentMove;
     }
@@ -187,11 +178,17 @@ public class GUI extends JFrame {
     public void updateBoard(Board board) {
         try {
             SwingUtilities.invokeAndWait(() -> {
+                int[] lastMove = board.getLastMove();
                 String[][][] boardArr = board.getBoard();
                 for (int boardIndex = 0; boardIndex < boardArr.length; boardIndex++) {
                     for (int row = 0; row < boardArr[boardIndex].length; row++) {
                         for (int col = 0; col < boardArr[boardIndex][row].length; col++) {
                             cells[boardIndex][row][col].setText(boardArr[boardIndex][row][col]);
+                            if ((boardIndex == lastMove[0]) && (row == lastMove[1]) && (col == lastMove[2])) {
+                                cells[boardIndex][row][col].setForeground(ERROR);
+                            } else {
+                                cells[boardIndex][row][col].setForeground(LINE);
+                            }
                         }
                     }
                 }
@@ -209,8 +206,10 @@ public class GUI extends JFrame {
                     if (board.getCorrectLocalBoard() == i && !board.isWon) {
                         col = BOARD_INDICATOR;
                     } else if (board.isWonBoard(i)) {
+                        if (boardPanels[i].getComponent(0).getFont().getSize() != 80) {
+                            setWinPanel(i, board);
+                        }
                         col = WON_BOARD;
-                        setWinPanel(i, board);
                     } else {
                         col = BACKGROUND;
                     }
@@ -230,16 +229,20 @@ public class GUI extends JFrame {
     }
 
     public void resetBoard() {
-        SwingUtilities.invokeLater(() -> {
-            mainPanel.removeAll();
-            for (int boardIndex = 0; boardIndex < 9; boardIndex++) {
-                JPanel boardPanel = createBoardPanel(boardIndex);
-                boardPanels[boardIndex] = boardPanel;
-                mainPanel.add(boardPanel);
+        try {
+            SwingUtilities.invokeAndWait(() -> {
+                mainPanel.removeAll();
+                for (int boardIndex = 0; boardIndex < 9; boardIndex++) {
+                    JPanel boardPanel = createBoardPanel(boardIndex);
+                    boardPanels[boardIndex] = boardPanel;
+                    mainPanel.add(boardPanel);
+                }
                 mainPanel.revalidate();
                 mainPanel.repaint();
-            }
-        });
+            });
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public void clearBottomLabel() {

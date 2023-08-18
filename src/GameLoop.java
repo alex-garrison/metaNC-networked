@@ -1,24 +1,24 @@
 class GameLoop implements Runnable {
-    private final Board board;
     private String mode;
 
     public volatile boolean gameLoopExecuting;
 
     public GameLoop() {
-        board = new Board();
         gameLoopExecuting = true;
     }
 
     public void run() {
         mode = GUI.frame.getMode();
+
         gameLoop();
     }
 
     private void gameLoop() {
+        Board board = new Board();
         board.emptyBoard();
         board.setStarter("X");
 
-        long MOVE_DELAY = 150;
+        long AI_MOVE_DELAY = 75;
 
         boolean isPVP = false;
         boolean isPVAI = false;
@@ -30,7 +30,7 @@ class GameLoop implements Runnable {
             case "AIvAI" -> isAIVAI = true;
         }
 
-        boolean errorOccured = false;
+        boolean errorOccurred = false;
         int[] moveLocation = new int[3];
         AiAgent ai = new AiAgent(board);
 
@@ -41,13 +41,18 @@ class GameLoop implements Runnable {
                 } else {
                     GUI.frame.setBottomLabel("Player " + board.winner + " wins.", false);
                 }
+                GUI.frame.updateBoard(board);
+                GUI.frame.setBoardColours(board);
+
                 break;
             }
 
-            GUI.frame.updateBoard(board);
-            GUI.frame.setBoardColours(board);
-
-
+            try {
+                GUI.frame.updateBoard(board);
+                GUI.frame.setBoardColours(board);
+            } catch (RuntimeException e) {
+                gameLoopExecuting = false; continue;
+            }
 
             if (isPVP) {
                 moveLocation = GUI.frame.waitForMove(this);
@@ -57,7 +62,7 @@ class GameLoop implements Runnable {
                 } else {
                     try {
                         moveLocation = ai.getMove();
-                        Thread.sleep(MOVE_DELAY);
+                        Thread.sleep(AI_MOVE_DELAY);
                     } catch (InterruptedException e) {
                         break;
                     } catch (GameException e) {
@@ -67,7 +72,7 @@ class GameLoop implements Runnable {
             } else if (isAIVAI) {
                 try {
                     moveLocation = ai.getMove();
-                    Thread.sleep(MOVE_DELAY);
+                    Thread.sleep(AI_MOVE_DELAY);
                 } catch (InterruptedException e) {
                     break;
                 } catch (GameException e) {
@@ -80,22 +85,16 @@ class GameLoop implements Runnable {
                 board.turn(board.whoseTurn(), moveLocation);
             } catch (GameException e) {
                 GUI.frame.setBottomLabel(e.getMessage(), true);
-                errorOccured = true;
+                errorOccurred = true;
             } catch (NullPointerException e) {
                 continue;
             }
 
-            if (!errorOccured) {
+            if (!errorOccurred) {
                 GUI.frame.clearBottomLabel();
             } else {
-                errorOccured = false;
+                errorOccurred = false;
             }
         }
-        GUI.frame.updateBoard(board);
-        GUI.frame.setBoardColours(board);
-    }
-
-    public void stopExecuting() {
-        gameLoopExecuting = false;
     }
 }
