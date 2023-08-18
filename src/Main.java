@@ -1,19 +1,20 @@
 public class Main {
     public static void main(String[] args) {
-
-        Board board = new Board();
-        board.emptyBoard();
-
         try {
             GUI.startGUI();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
 
-        GUI.frame.showBoard(board);
-
         GUI.frame.waitForNewGame();
 
-        GUI.frame.setBottomLabel(GUI.frame.getMode());
+        Thread gameLoopThread;
+
+        while (!Thread.currentThread().isInterrupted()) {
+            gameLoopThread = new Thread(new GameLoop());
+            gameLoopThread.start();
+            new NewGameLoop(gameLoopThread);
+            GUI.frame.resetBoard();
+        }
     }
 }
