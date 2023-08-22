@@ -1,3 +1,5 @@
+package client;
+
 class GameLoop implements Runnable {
     private String mode;
 

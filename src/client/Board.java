@@ -1,3 +1,5 @@
+package client;
+
 import java.util.TreeSet;
 
 public class Board {
