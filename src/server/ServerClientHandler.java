@@ -54,6 +54,21 @@ public class ServerClientHandler implements Runnable {
         }
     }
 
+    public void send(String message) {
+        while (true) {
+            if (writer != null) {
+                writer.send(message);
+                break;
+            } else {
+                try {
+                    Thread.sleep(200);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+    }
+
     public void setClientID(int clientID) {
         this.clientID = clientID;
     }
@@ -99,10 +114,25 @@ public class ServerClientHandler implements Runnable {
                         String receivedData = reader.readLine();
 
                         if (receivedData == null) {
-//                            System.out.println("Error with client."); keepRunning = false;
                             continue;
-                        } else {
-                            System.out.println("Client sent : " + receivedData);
+                        } else if (!receivedData.isEmpty()) {
+                            String[] args = receivedData.split(":");
+                            switch (args[0]) {
+                                case "TURN":
+                                    try {
+                                        String[] locationString = args[1].split("");
+                                        int[] location = new int[3];
+                                        for (int i = 0; i < location.length; i++) {
+                                            location[i] = Integer.parseInt(locationString[i]);
+                                        }
+                                        Server.turn(location, clientID);
+                                    } catch (Exception e) {
+                                        System.out.println("Error parsing move : " + e);
+                                    }
+                                    break;
+                                case default:
+                                    System.out.println("Client sent : " + receivedData);
+                                }
                         }
                     }  catch (SocketTimeoutException e) {
                         continue;

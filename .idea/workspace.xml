@@ -1,16 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="412dbc24-db8c-4dbf-8797-c3a3b012b83b" name="Changes" comment="restructured code, created basic server with multithreading">
-      <change afterPath="$PROJECT_DIR$/.idea/uiDesigner.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/client/Client.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+    <list default="true" id="412dbc24-db8c-4dbf-8797-c3a3b012b83b" name="Changes" comment="added single player networked gameplay loop with centralised board, board serialisation and basic GUI elements for networking control">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/client/Board.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/client/Board.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/client/Client.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/client/Client.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/client/ClientMain.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/client/ClientMain.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/client/GUI.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/client/GUI.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/server/Client.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/server/ServerClient.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/server/ClientHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/server/ServerClientHandler.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/server/Server.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/server/Server.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/server/ServerClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/server/ServerClient.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/server/ServerClientHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/server/ServerClientHandler.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -108,7 +107,7 @@
       <workItem from="1690989355004" duration="498000" />
       <workItem from="1691338966739" duration="3323000" />
       <workItem from="1691421480343" duration="861000" />
-      <workItem from="1692710582633" duration="8289000" />
+      <workItem from="1692710582633" duration="20109000" />
     </task>
     <task id="LOCAL-00001" summary="added tracking for won boards, disallows moves to won boards, win condition is based on global board">
       <created>1691083445422</created>
@@ -180,7 +179,14 @@
       <option name="project" value="LOCAL" />
       <updated>1692710970667</updated>
     </task>
-    <option name="localTasksCounter" value="11" />
+    <task id="LOCAL-00011" summary="added basic client, and data reading and writing between server and client">
+      <created>1692719081351</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1692719081351</updated>
+    </task>
+    <option name="localTasksCounter" value="12" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -243,7 +249,9 @@
     <MESSAGE value="added PvP gameplay loop with board colouring" />
     <MESSAGE value="added PvAI and AIvAI gameplay, new game functionality, thread control and better colour design" />
     <MESSAGE value="restructured code, created basic server with multithreading" />
-    <option name="LAST_COMMIT_MESSAGE" value="restructured code, created basic server with multithreading" />
+    <MESSAGE value="added basic client, and data reading and writing between server and client" />
+    <MESSAGE value="added single player networked gameplay loop with centralised board, board serialisation and basic GUI elements for networking control" />
+    <option name="LAST_COMMIT_MESSAGE" value="added single player networked gameplay loop with centralised board, board serialisation and basic GUI elements for networking control" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

@@ -1,8 +1,10 @@
 package client;
 
 public class ClientMain {
+
+    public static Client client;
     public static void main(String[] args) {
-        new Client();
+        client = new Client();
 
         try {
             GUI.startGUI();
@@ -10,7 +12,7 @@ public class ClientMain {
             throw new RuntimeException(e);
         }
 
-
+//        GUI.frame.setClientIDLabel(client.clientID);
 //
 //        GUI.frame.waitForNewGame();
 //
@@ -22,5 +24,10 @@ public class ClientMain {
 //            new NewGameLoop(gameLoopThread);
 //            GUI.frame.resetBoard();
 //        }
+    }
+
+    public static void startClient() {
+        Thread clientThread = new Thread(client);
+        clientThread.start();
     }
 }

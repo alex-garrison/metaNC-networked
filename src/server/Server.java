@@ -1,5 +1,9 @@
 package server;
 
+import client.AiAgent;
+import client.Board;
+import client.GameException;
+
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -11,10 +15,12 @@ public class Server implements Runnable {
     private final int TIMEOUT_MILLIS = 2000;
 
     private ServerSocket serverSocket;
-    private final ArrayList<ServerClient> serverClients;
+    private static Board serverBoard;
+    private static ArrayList<ServerClient> serverClients;
 
     public Server() {
         serverClients = new ArrayList<>();
+        serverBoard = new Board();
     }
 
     @Override
@@ -30,19 +36,52 @@ public class Server implements Runnable {
 
         System.out.println("Got serverClients");
 
-        try {
-            Thread.sleep(1500);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+        serverBoard.emptyBoard();
+        serverBoard.setStarter("X");
+        AiAgent ai = new AiAgent(serverBoard);
+
+        while (!serverBoard.isWin()){
+            try {
+                Thread.sleep(50);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
         }
+
+        broadcast("DISCONNECT");
+        System.out.println("Disconnecting from clients");
 
         for (ServerClient serverClient : serverClients) {
             serverClient.stopClient();
         }
     }
 
+    public static void turn(int[] location, int clientID) {
+        try {
+            serverBoard.turn(serverBoard.whoseTurn(), location);
+            broadcast("BOARD:"+serverBoard.serialiseBoard());
+        } catch (GameException e) {
+            ServerClient serverClient = getServerClientFromClientID(clientID);
+            if (serverClient != null) {
+                send(serverClient, "ERROR:"+e.getMessage());
+            } else {
+                System.out.println("Error with clientID ");
+            }
+        }
+    }
+
+    private static void broadcast(String message) {
+        for (ServerClient serverClient : serverClients) {
+            send(serverClient, message);
+        }
+    }
+
+    private static void send(ServerClient serverClient, String message) {
+        serverClient.getServerClientHandler().send(message);
+    }
+
     private void awaitServerClients() {
-        while (serverClients.size() < 2) {
+        while (serverClients.size() < 1) {
             try {
                 Socket serverClientSocket = serverSocket.accept();
                 ServerClientHandler serverClientHandler = new ServerClientHandler(serverClientSocket);
@@ -59,5 +98,14 @@ public class Server implements Runnable {
                 System.out.println("Error accepting serverClient : " + e);
             }
         }
+    }
+
+    private static ServerClient getServerClientFromClientID(int clientID) {
+        for (ServerClient serverClient: serverClients) {
+            if (serverClient.getClientID() == clientID) {
+                return serverClient;
+            }
+        }
+        return null;
     }
 }

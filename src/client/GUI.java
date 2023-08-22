@@ -26,6 +26,9 @@ public class GUI extends JFrame {
     private JLabel bottomLabel;
     private JButton[][][] cells;
 
+    private JButton connectButton;
+    private JLabel clientIDLabel;
+
     private int[] currentMove;
 
     public GUI() {
@@ -50,7 +53,7 @@ public class GUI extends JFrame {
             mainPanel.add(boardPanel);
         }
 
-        optionPanel = createOptionPanel();
+        optionPanel = createBottomPanel();
 
         setLayout(new BorderLayout());
         add(mainPanel, BorderLayout.CENTER);
@@ -66,7 +69,6 @@ public class GUI extends JFrame {
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 3; col++) {
                 JButton cell = new JButton("");
-                cell.addActionListener(new CellClickListener(boardIndex, row, col));
                 cell.setPreferredSize(new Dimension(50,50));
                 cell.setBorder(new LineBorder(LINE,1));
                 cell.setOpaque(false);
@@ -96,10 +98,10 @@ public class GUI extends JFrame {
         boardPanels[boardIndex].repaint();
     }
 
-    private JPanel createOptionPanel() {
-        JPanel newOptionPanel = new JPanel();
-        newOptionPanel.setLayout(new BoxLayout(newOptionPanel, BoxLayout.X_AXIS));
-        newOptionPanel.setBorder(new EmptyBorder(3,5,3,5));
+    private JPanel createBottomPanel() {
+        JPanel gameOptionPanel = new JPanel();
+        gameOptionPanel.setLayout(new BoxLayout(gameOptionPanel, BoxLayout.X_AXIS));
+        gameOptionPanel.setBorder(new EmptyBorder(3,5,3,5));
 
         newGameButton = new JButton("New Game");
         newGameButton.setFont(new Font("Arial", Font.PLAIN, 15));
@@ -113,16 +115,43 @@ public class GUI extends JFrame {
         bottomLabel.setFont(new Font("Arial", Font.PLAIN, 20));
         bottomLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        newOptionPanel.add(newGameButton);
-        newOptionPanel.add(Box.createRigidArea(new Dimension(5,-1)));
-        newOptionPanel.add(selectMode);
-        newOptionPanel.add(Box.createHorizontalGlue());
-        newOptionPanel.add(bottomLabel);
-        newOptionPanel.add(Box.createHorizontalGlue());
+        gameOptionPanel.add(newGameButton);
+        gameOptionPanel.add(Box.createRigidArea(new Dimension(5,-1)));
+        gameOptionPanel.add(selectMode);
+        gameOptionPanel.add(Box.createHorizontalGlue());
+        gameOptionPanel.add(bottomLabel);
+        gameOptionPanel.add(Box.createHorizontalGlue());
 
-        newOptionPanel.setBackground(OPTION_PANEL_BACKGROUND);
+        gameOptionPanel.setBackground(OPTION_PANEL_BACKGROUND);
 
-        return newOptionPanel;
+        JPanel networkOptionPanel = new JPanel();
+        networkOptionPanel.setLayout(new BoxLayout(networkOptionPanel, BoxLayout.X_AXIS));
+        networkOptionPanel.setBorder(new EmptyBorder(3,5,3,5));
+        networkOptionPanel.setBackground(OPTION_PANEL_BACKGROUND);
+
+        connectButton = new JButton("Connect");
+        connectButton.setFont(new Font("Arial", Font.PLAIN, 15));
+        connectButton.addActionListener(new ConnectClickListener());
+        connectButton.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        clientIDLabel = new JLabel("");
+        clientIDLabel.setFont(new Font("Arial", Font.PLAIN, 20));
+        clientIDLabel.setAlignmentX(Component.RIGHT_ALIGNMENT);
+        clientIDLabel.setForeground(BACKGROUND);
+
+        networkOptionPanel.add(connectButton);
+        networkOptionPanel.add(Box.createHorizontalGlue());
+        networkOptionPanel.add(clientIDLabel);
+        networkOptionPanel.add(Box.createHorizontalGlue());
+
+        JPanel bottomPanel = new JPanel();
+        bottomPanel.setLayout(new BoxLayout(bottomPanel, BoxLayout.Y_AXIS));
+        bottomPanel.setBackground(OPTION_PANEL_BACKGROUND);
+
+        bottomPanel.add(gameOptionPanel);
+        bottomPanel.add(networkOptionPanel);
+
+        return bottomPanel;
     }
 
     private class CellClickListener implements ActionListener {
@@ -139,9 +168,7 @@ public class GUI extends JFrame {
         @Override
         public void actionPerformed(ActionEvent e) {
             currentMove = new int[]{boardIndex, row, col};
-            synchronized (cells) {
-                cells.notify();
-            }
+            ClientMain.client.turn(currentMove);
         }
     }
 
@@ -151,6 +178,15 @@ public class GUI extends JFrame {
             synchronized (newGameButton) {
                 newGameButton.notify();
             }
+        }
+    }
+
+    private class ConnectClickListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            ClientMain.startClient();
+            ClientMain.client.waitForClientID();
+            setClientIDLabel(ClientMain.client.clientID);
         }
     }
 
@@ -228,6 +264,10 @@ public class GUI extends JFrame {
         if (error) color = ERROR;
         bottomLabel.setForeground(color);
         bottomLabel.setText(text);
+    }
+
+    public void setClientIDLabel(int clientID) {
+        clientIDLabel.setText("ClientID : " + clientID);
     }
 
     public void resetBoard() {

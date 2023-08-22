@@ -1,6 +1,8 @@
 package client;
 
 import java.util.TreeSet;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Board {
     private final String[][][] board;
@@ -34,6 +36,65 @@ public class Board {
 
     public void setStarter(String starter) {
         turn = starter;
+    }
+
+    public String serialiseBoard() {
+        StringBuilder output = new StringBuilder();
+        output.append("|||");
+        for (int boardIndex = 0; boardIndex < board.length; boardIndex++) {
+            for (int row = 0; row < board[boardIndex].length; row++) {
+                for (int col = 0; col < board[boardIndex][row].length; col++) {
+                    String cell = board[boardIndex][row][col];
+                    if (cell.equals("")) {cell = " ";}
+                    output.append(cell);
+                }
+                if (row < 2) {
+                    output.append("/");
+                }
+            }
+            output.append("|||");
+        }
+        output.append(lastMove[0]).append(lastMove[1]).append(lastMove[2]);
+        return output.toString();
+    }
+
+    public void deserializeBoard(String serialisedBoard) throws GameException {
+        Pattern pattern = Pattern.compile("(?=\\|\\|\\|(.*?)\\|\\|\\|)"); // (?=\|\|\|(.*?)\|\|\|)
+        Matcher matcher = pattern.matcher(serialisedBoard);
+
+        String[] serialisedBoards = new String[9];
+        int i = 0;
+
+        while (matcher.find()) {
+            String match = matcher.group(1);
+            serialisedBoards[i] = match;
+            i++;
+        }
+
+        if (i == 9) {
+            int rowCounter = 0;
+            int colCounter = 0;
+            for (int boardIndex = 0; boardIndex < serialisedBoards.length; boardIndex++) {
+                for (String row: serialisedBoards[boardIndex].split("/")) {
+                    for (String cell: row.split("")) {
+                        if (cell.equals(" ")) cell = "";
+                        board[boardIndex][rowCounter][colCounter] = cell;
+                        colCounter++;
+                    }
+                    colCounter = 0;
+                    rowCounter++;
+                }
+                rowCounter = 0;
+            }
+            String[] lastMoveString = serialisedBoard.substring(129, 132).split("");
+            int[] lastMoveArr = new int[3];
+            for (int j = 0; j < 3; j++) {
+                lastMoveArr[j] = Integer.parseInt(lastMoveString[j]);
+            }
+            lastMove = lastMoveArr;
+        } else {
+            throw new GameException("Error deserializing");
+        }
     }
 
     public void turn(String player, int[] location) throws GameException {

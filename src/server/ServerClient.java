@@ -32,4 +32,9 @@ public class ServerClient {
     public int getClientID() {
         return clientID;
     }
+
+    public ServerClientHandler getServerClientHandler() {
+        return serverClientHandler;
+    }
+
 }
