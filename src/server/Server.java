@@ -8,56 +8,55 @@ import java.util.ArrayList;
 
 public class Server implements Runnable {
     private final int PORT = 8000;
+    private final int TIMEOUT_MILLIS = 2000;
 
     private ServerSocket serverSocket;
-    private final ArrayList<Client> clients;
+    private final ArrayList<ServerClient> serverClients;
 
     public Server() {
-        clients = new ArrayList<>();
+        serverClients = new ArrayList<>();
     }
 
     @Override
     public void run() {
         try {
             serverSocket = new ServerSocket(PORT);
-            serverSocket.setSoTimeout(200);
+            serverSocket.setSoTimeout(TIMEOUT_MILLIS);
         } catch (IOException e) {
             System.out.println("Error initialising server : " + e);
         }
 
-        awaitClients();
+        awaitServerClients();
 
-        System.out.println("Got clients");
+        System.out.println("Got serverClients");
 
         try {
-            Thread.sleep(5000);
+            Thread.sleep(1500);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
 
-        for (Client client: clients) {
-            client.stopClient();
+        for (ServerClient serverClient : serverClients) {
+            serverClient.stopClient();
         }
-
-        System.out.println("Closed clients");
     }
 
-    private void awaitClients() {
-        while (clients.size() < 2) {
+    private void awaitServerClients() {
+        while (serverClients.size() < 2) {
             try {
-                Socket clientSocket = serverSocket.accept();
-                ClientHandler clientHandler = new ClientHandler(clientSocket);
-                Thread clientHandlerThread = new Thread(clientHandler);
-                clientHandlerThread.start();
+                Socket serverClientSocket = serverSocket.accept();
+                ServerClientHandler serverClientHandler = new ServerClientHandler(serverClientSocket);
+                Thread serverClientHandlerThread = new Thread(serverClientHandler);
+                serverClientHandlerThread.start();
 
-                Client client = new Client(clientSocket, clientHandler, clientHandlerThread);
+                ServerClient serverClient = new ServerClient(serverClientSocket, serverClientHandler, serverClientHandlerThread);
 
-                clients.add(client);
-                System.out.println("Accepted client " + client.getClientID());
+                serverClientHandler.setClientID(serverClient.getClientID());
+                serverClients.add(serverClient);
             } catch (SocketTimeoutException e) {
                 continue;
             } catch (IOException e) {
-                System.out.println("Error accepting client : " + e);
+                System.out.println("Error accepting serverClient : " + e);
             }
         }
     }
