@@ -5,6 +5,7 @@ import java.net.Socket;
 import java.net.SocketTimeoutException;
 
 public class ServerClientHandler implements Runnable {
+    private ServerClient serverClient;
     private final Socket serverClientSocket;
     private ServerClientReader reader;
     private ServerClientWriter writer;
@@ -29,6 +30,8 @@ public class ServerClientHandler implements Runnable {
     public void run() {
         waitForClientID();
 
+        waitForServerClient();
+
         reader = new ServerClientReader();
         Thread readerThread = new Thread(reader);
         readerThread.start();
@@ -38,6 +41,10 @@ public class ServerClientHandler implements Runnable {
         writer.send("CLIENTID:" + clientID);
 
         while (keepRunning) {
+            if (!reader.keepRunning) {
+                System.out.println("Reader has stopped");
+                keepRunning = false; continue;
+            }
             try {
                 Thread.sleep(100);
             } catch (InterruptedException e) {
@@ -45,13 +52,14 @@ public class ServerClientHandler implements Runnable {
             }
         }
 
-        writer.close();
         reader.stopRunning();
         try {
             readerThread.join();
         } catch (InterruptedException e) {
             System.out.println("Error waiting for readerThread to stop");
         }
+
+        writer.close();
     }
 
     public void send(String message) {
@@ -61,7 +69,7 @@ public class ServerClientHandler implements Runnable {
                 break;
             } else {
                 try {
-                    Thread.sleep(200);
+                    Thread.sleep(50);
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 }
@@ -87,6 +95,22 @@ public class ServerClientHandler implements Runnable {
         }
     }
 
+    private void waitForServerClient() {
+        while (true) {
+            serverClient = Server.getServerClientFromClientID(clientID);
+
+            if (serverClient == null) {
+                try {
+                    Thread.sleep(200);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            } else {
+                break;
+            }
+        }
+    }
+
     public void stopRunning() {
         keepRunning = false;
     }
@@ -94,6 +118,8 @@ public class ServerClientHandler implements Runnable {
     private class ServerClientReader implements Runnable {
         private BufferedReader reader;
         private boolean keepRunning;
+
+        private int nullDataCounter = 0;
 
         public ServerClientReader() {
             keepRunning = true;
@@ -111,13 +137,26 @@ public class ServerClientHandler implements Runnable {
 
                 if (!serverClientSocket.isClosed()) {
                     try {
+                        if (nullDataCounter >= 10) {
+                            keepRunning = false;
+                            continue;
+                        }
+
                         String receivedData = reader.readLine();
 
                         if (receivedData == null) {
-                            continue;
+                            nullDataCounter++;
+                            Thread.sleep(100);
                         } else if (!receivedData.isEmpty()) {
                             String[] args = receivedData.split(":");
                             switch (args[0]) {
+                                case "SETMODE":
+                                    try {
+                                        Server.server.setGameMode(args[1]);
+                                    } catch (NumberFormatException e) {
+                                        System.out.println("Error with SETMODE command");
+                                    }
+                                    break;
                                 case "TURN":
                                     try {
                                         String[] locationString = args[1].split("");
@@ -126,9 +165,15 @@ public class ServerClientHandler implements Runnable {
                                             location[i] = Integer.parseInt(locationString[i]);
                                         }
                                         Server.turn(location, clientID);
-                                    } catch (Exception e) {
-                                        System.out.println("Error parsing move : " + e);
+                                    } catch (NumberFormatException e) {
+                                        System.out.println("Error with TURN command");
                                     }
+                                    break;
+                                case "DISCONNECT":
+                                    stopRunning();
+                                    break;
+                                case "NEWGAME":
+                                    Server.newGame(clientID);
                                     break;
                                 case default:
                                     System.out.println("Client sent : " + receivedData);
@@ -139,8 +184,11 @@ public class ServerClientHandler implements Runnable {
                     } catch (IOException e) {
                         System.out.println("Error reading data : " + e);
                         keepRunning = false;
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
                     }
                 } else {
+                    System.out.println("Sockets closed");
                     keepRunning = false;
                 }
             }
@@ -152,6 +200,8 @@ public class ServerClientHandler implements Runnable {
                     System.out.println("Error closing reader" + e);
                 }
             }
+
+            this.stopRunning();
         }
 
         public void stopRunning() {
@@ -184,7 +234,7 @@ public class ServerClientHandler implements Runnable {
                     continue;
                 } catch (IOException e) {
                     if (errorCount >= 5) {
-                        return;
+                        close();
                     } else {
                         System.out.println("Error sending message : " + e);
                         errorCount++;

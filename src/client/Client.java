@@ -1,35 +1,43 @@
 package client;
 
 import java.io.*;
-import java.net.InetAddress;
-import java.net.Socket;
-import java.net.SocketTimeoutException;
-import java.net.UnknownHostException;
+import java.net.*;
 
 public class Client implements Runnable {
     private final int PORT = 8000;
     private final int TIMEOUT_MILLIS = 500;
 
     private InetAddress host;
-    public int clientID;
+    private int clientID;
+    private String player;
+    private boolean isClientTurn;
 
     private Socket clientSocket;
+    private boolean isConnected;
     private ClientWriter writer;
     private ClientReader reader;
 
     public Client() {
         clientID = -1;
+        isConnected = false;
     }
 
     public void run() {
         try {
-            host = InetAddress.getLocalHost();
+            host = InetAddress.getByName("192.168.86.202");
         } catch (UnknownHostException e) {
             System.out.println("Error initialising host");
         }
 
+        GUI.frame.resetBoardPanels();
+        GUI.frame.clearBottomLabel();
+        GUI.frame.clearNetworkLabel();
+        GUI.frame.clearPlayerLabel();
+
         if (connectToServer()) {
             System.out.println("Connected to server : " + clientSocket);
+            isConnected = true;
+            GUI.frame.setNetworkButtonFunction(false);
 
             reader = new ClientReader();
             Thread readerThread = new Thread(reader);
@@ -43,6 +51,13 @@ public class Client implements Runnable {
                 System.out.println("Error waiting for readerThread to stop");
             }
             writer.close();
+
+            isConnected = false;
+            GUI.frame.setNetworkLabel("Server disconnected" , true);
+            GUI.frame.clearPlayerLabel();
+
+        } else {
+            GUI.frame.setNetworkLabel("Error connecting" , true);
         }
 
         if (clientSocket != null) {
@@ -54,11 +69,16 @@ public class Client implements Runnable {
         }
 
         System.out.println("Client stoppped");
+
+        GUI.frame.setNetworkButtonFunction(true);
     }
 
     public void turn(int[] location) {
-        if (location.length == 3) {
-            writer.send("TURN:" + location[0] + location[1] + location[2]);
+        if (isClientTurn) {
+            if (location.length == 3) {
+                writer.send("TURN:" + location[0] + location[1] + location[2]);
+                isClientTurn = false;
+            }
         }
     }
 
@@ -85,29 +105,84 @@ public class Client implements Runnable {
         return false;
     }
 
+    public void disconnect() {
+        if (clientSocket != null && !clientSocket.isClosed()) {
+            try {
+                writer.send("DISCONNECT");
+                clientSocket.close();
+            } catch (IOException e) {
+                System.out.println("Error closing socket");
+            }
+        }
+    }
+
+    public void sendNewGame() {
+        if (writer != null) {
+            writer.send("NEWGAME");
+            writer.send("SETMODE:" + GUI.frame.getMode());
+        }
+    }
+
     private void setClientID(int clientID) {
         this.clientID = clientID;
+        GUI.frame.setNetworkLabel(ClientMain.client.getClientID());
         System.out.println("Set clientID : " + clientID);
+    }
+
+    public void setPlayer(String player) {
+        this.player = player;
+        GUI.frame.setPlayerLabel(this.player, false);
+    }
+
+    public void setClientTurn(boolean isClientTurn) {
+        GUI.frame.setPlayerLabel(GUI.frame.getPlayerLabel(), isClientTurn);
+        this.isClientTurn = true;
+    }
+
+    public void boardWon() {
+        GUI.frame.setBottomLabel("Board won", false);
+    }
+
+    public int getClientID() {
+        return clientID;
+    }
+
+    public boolean isConnected() {
+        return isConnected;
     }
 
     private void updateBoard(String serialisedBoard) {
         try {
             Board newBoard = new Board();
-            newBoard.deserializeBoard(serialisedBoard);
+            try {
+                newBoard.deserializeBoard(serialisedBoard);
+            } catch (NumberFormatException e) {
+                System.out.println(serialisedBoard);
+            }
+
+            if (newBoard.isEmptyBoard()) {
+                GUI.frame.resetBoardPanels();
+                GUI.frame.clearBottomLabel();
+            }
+
             newBoard.isWin();
             GUI.frame.updateBoard(newBoard);
-            GUI.frame.setBoardColours(newBoard);
+            GUI.frame.setBoardColours(newBoard, player);
             GUI.frame.clearBottomLabel();
         } catch (GameException e) {
             System.out.println("Board error : " + e);
         }
     }
 
-    public void waitForClientID() {
+    public void waitForClientID() throws RuntimeException {
+        int timeoutCount = 0;
         while (true) {
-            if (clientID == -1) {
+            if (timeoutCount >= 5) {
+                throw new RuntimeException("Waiting timed out");
+            } else if (clientID == -1) {
                 try {
                     Thread.sleep(200);
+                    timeoutCount++;
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 }
@@ -120,6 +195,8 @@ public class Client implements Runnable {
     private class ClientReader implements Runnable {
         private BufferedReader reader;
         private boolean keepRunning;
+
+        private int nullDataCounter = 0;
 
         public ClientReader() {
             keepRunning = true;
@@ -135,10 +212,15 @@ public class Client implements Runnable {
                     }
                 } else {
                     try {
+                        if (nullDataCounter >= 5) {
+                            System.out.println("Error with server.");
+                            keepRunning = false; continue;
+                        }
+
                         String receivedData = reader.readLine();
 
                         if (receivedData == null) {
-                            System.out.println("Error with server."); keepRunning = false;
+                            nullDataCounter++;
                         } else if (!receivedData.isEmpty()){
                             String[] args = receivedData.split(":");
                             switch (args[0]) {
@@ -154,9 +236,27 @@ public class Client implements Runnable {
                                 case "BOARD":
                                     try {
                                         updateBoard(args[1]);
+                                        setClientTurn(false);
                                     } catch (IndexOutOfBoundsException e) {
                                         System.out.println("Error with BOARD command");
                                     }
+                                    break;
+                                case "NEWGAME":
+                                    System.out.println("recieved new game");
+                                    GUI.frame.clearPlayerLabel();
+                                    break;
+                                case "ASSIGNPLAYER":
+                                    try {
+                                        setPlayer(args[1]);
+                                    } catch (IndexOutOfBoundsException e) {
+                                        System.out.println("Error with ASSIGNPLAYER command");
+                                    }
+                                    break;
+                                case "AWAITTURN":
+                                    setClientTurn(true);
+                                    break;
+                                case "BOARDWON":
+                                    boardWon();
                                     break;
                                 case "ERROR":
                                     try {

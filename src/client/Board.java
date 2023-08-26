@@ -1,5 +1,8 @@
 package client;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Random;
 import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -11,6 +14,7 @@ public class Board {
     public Win[] localBoardWins;
     private final TreeSet<Integer> wonBoards;
     private final TreeSet<Integer> openBoards;
+    private HashMap<Integer, String> players;
 
     public boolean isWon;
     public String winner;
@@ -20,6 +24,7 @@ public class Board {
         this.localBoardWins = new Win[9];
         this.wonBoards = new TreeSet<>();
         this.openBoards = new TreeSet<>();
+        this.players = new HashMap<>();
 
         this.emptyBoard();
         for (int i = 0; i < 9; i++) {
@@ -38,6 +43,58 @@ public class Board {
         turn = starter;
     }
 
+    public String addPlayer(int clientID) throws GameException {
+        if (players.keySet().size() >= 2) {
+            throw new GameException("Players already assigned");
+        } else {
+            String player = new String[]{"X", "O"}[new Random().nextInt(2)];
+            if (players.containsValue(player)) {
+                player = invertPlayer(player);
+            }
+            players.put(clientID, player);
+            return player;
+        }
+    }
+
+    public String getPlayer(int clientID) {
+        return players.get(clientID);
+    }
+
+    public String addPlayer() throws GameException { // AI PLAYER
+        if (players.keySet().size() >= 2) {
+            throw new GameException("Players already assigned");
+        } else {
+            String player = new String[]{"X", "O"}[new Random().nextInt(2)];
+            if (players.containsValue(player)) {
+                player = invertPlayer(player);
+            }
+            players.put(0, player);
+            return player;
+        }
+    }
+
+    public void clearPlayers() {
+        players.clear();
+    }
+
+    public int getCurrentClientID() {
+        while (true) {
+            if (players.keySet().size() == 2) {
+                for (Map.Entry<Integer, String> entry : players.entrySet()) {
+                    if(entry.getValue().equals(turn)) {
+                        return entry.getKey();
+                    }
+                }
+            } else {
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+    }
+
     public String serialiseBoard() {
         StringBuilder output = new StringBuilder();
         output.append("|||");
@@ -54,19 +111,26 @@ public class Board {
             }
             output.append("|||");
         }
-        output.append(lastMove[0]).append(lastMove[1]).append(lastMove[2]);
+        String lastMoveString;
+        if (lastMove[0] == -1) {
+            lastMoveString = "---";
+        } else {
+            lastMoveString = String.valueOf(lastMove[0]) + String.valueOf(lastMove[1]) + String.valueOf(lastMove[2]);
+        }
+        output.append("<").append(lastMoveString);
+        output.append(",").append(turn).append(">");
         return output.toString();
     }
 
     public void deserializeBoard(String serialisedBoard) throws GameException {
-        Pattern pattern = Pattern.compile("(?=\\|\\|\\|(.*?)\\|\\|\\|)"); // (?=\|\|\|(.*?)\|\|\|)
-        Matcher matcher = pattern.matcher(serialisedBoard);
+        Pattern boardPattern = Pattern.compile("(?=\\|\\|\\|(.*?)\\|\\|\\|)"); // (?=\|\|\|(.*?)\|\|\|)
+        Matcher boardMatcher = boardPattern.matcher(serialisedBoard);
 
         String[] serialisedBoards = new String[9];
         int i = 0;
 
-        while (matcher.find()) {
-            String match = matcher.group(1);
+        while (boardMatcher.find()) {
+            String match = boardMatcher.group(1);
             serialisedBoards[i] = match;
             i++;
         }
@@ -86,24 +150,46 @@ public class Board {
                 }
                 rowCounter = 0;
             }
-            String[] lastMoveString = serialisedBoard.substring(129, 132).split("");
+
+            Pattern metadataPattern = Pattern.compile("<(.+)>");
+            Matcher metadataMatcher = metadataPattern.matcher(serialisedBoard);
+            metadataMatcher.find();
+            String[] metaData = metadataMatcher.group(1).split(",");
+
+            String[] lastMoveString = metaData[0].split("");
             int[] lastMoveArr = new int[3];
             for (int j = 0; j < 3; j++) {
-                lastMoveArr[j] = Integer.parseInt(lastMoveString[j]);
+                if (lastMoveString[j].equals("-")) {
+                    lastMoveArr[j] = -1;
+                } else {
+                    lastMoveArr[j] = Integer.parseInt(lastMoveString[j]);
+                }
             }
             lastMove = lastMoveArr;
+            turn = metaData[1];
         } else {
             throw new GameException("Error deserializing");
         }
     }
 
-    public void turn(String player, int[] location) throws GameException {
+    public void turn(int[] location, int clientID) throws GameException {
+            String player = players.get(clientID);
+            if (player == null) {
+                throw new GameException("No player for this clientID");
+            }
             if (player.equals(turn)) {
                 if (isValidMove(location) && !isInWonBoard(location) && isInCorrectLocalBoard(location)) {
                     board[location[0]][location[1]][location[2]] = player;
                     lastMove = location;
                 } else {
                     throw new GameException("Move not valid");
+//                    if (!isValidMove(location)) {
+//                        throw new GameException("Move not valid");
+//                    } else if (isInWonBoard(location)) {
+//                        throw new GameException("Move in won board");
+//                    } else if (isInCorrectLocalBoard(location)) {
+//                        throw new GameException("Move in wrong board");
+//                    }
                 }
 
                 turn = invertPlayer(turn);
@@ -113,6 +199,19 @@ public class Board {
             } else {
                 throw new GameException("It is not player " + player + "'s turn");
             }
+    }
+
+    public void resetBoard() {
+        wonBoards.clear();
+        openBoards.clear();
+
+        emptyBoard();
+        for (int i = 0; i < 9; i++) {
+            localBoardWins[i] = new Win();
+        }
+
+        isWon = false;
+        winner = "";
     }
 
     private boolean isInCorrectLocalBoard(int[] location) {
@@ -292,6 +391,10 @@ public class Board {
             }
         }
         lastMove = new int[]{-1,-1,-1};
+    }
+
+    public boolean isEmptyBoard() {
+        return (lastMove[0] == -1);
     }
 
     public String whoseTurn() {

@@ -7,6 +7,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Arrays;
 
 public class GUI extends JFrame {
     public static GUI frame;
@@ -19,15 +20,19 @@ public class GUI extends JFrame {
     private final Color ERROR = new Color(230, 57, 70);
 
     private JPanel mainPanel;
-    private JPanel optionPanel;
+    private JPanel bottomPanel;
+    private JPanel topPanel;
     private JPanel[] boardPanels;
     private JButton newGameButton;
     private JComboBox<String> selectMode;
     private JLabel bottomLabel;
     private JButton[][][] cells;
 
+    private JButton networkButton;
     private JButton connectButton;
-    private JLabel clientIDLabel;
+    private JButton disconnectButton;
+    private JLabel networkLabel;
+    private JLabel playerLabel;
 
     private int[] currentMove;
 
@@ -37,7 +42,7 @@ public class GUI extends JFrame {
 
     private void initGUI() {
         setTitle("Ultimate Noughts and Crosses");
-        setMinimumSize(new Dimension(450, 450));
+        setMinimumSize(new Dimension(450, 500));
         setResizable(false);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
@@ -53,11 +58,13 @@ public class GUI extends JFrame {
             mainPanel.add(boardPanel);
         }
 
-        optionPanel = createBottomPanel();
+        bottomPanel = createBottomPanel();
+        topPanel = createTopPanel();
 
         setLayout(new BorderLayout());
         add(mainPanel, BorderLayout.CENTER);
-        add(optionPanel, BorderLayout.SOUTH);
+        add(bottomPanel, BorderLayout.SOUTH);
+        add(topPanel, BorderLayout.NORTH);
     }
 
     private JPanel createBoardPanel(int boardIndex) {
@@ -101,13 +108,14 @@ public class GUI extends JFrame {
     private JPanel createBottomPanel() {
         JPanel gameOptionPanel = new JPanel();
         gameOptionPanel.setLayout(new BoxLayout(gameOptionPanel, BoxLayout.X_AXIS));
+        gameOptionPanel.setPreferredSize(new Dimension((int) gameOptionPanel.getPreferredSize().getWidth(), 40));
         gameOptionPanel.setBorder(new EmptyBorder(3,5,3,5));
 
         newGameButton = new JButton("New Game");
         newGameButton.setFont(new Font("Arial", Font.PLAIN, 15));
         newGameButton.addActionListener(new NewGameClickListener());
 
-        selectMode = new JComboBox<>(new String[]{"PvP", "PvAI", "AIvAI"});
+        selectMode = new JComboBox<>(new String[]{"Set mode", "-", "PvP", "PvAI", "AIvAI"});
         selectMode.setFont(new Font("Arial", Font.PLAIN, 15));
         selectMode.setMaximumSize(new Dimension(40, selectMode.getPreferredSize().height));
 
@@ -124,9 +132,14 @@ public class GUI extends JFrame {
 
         gameOptionPanel.setBackground(OPTION_PANEL_BACKGROUND);
 
+        return gameOptionPanel;
+    }
+
+    private JPanel createTopPanel() {
         JPanel networkOptionPanel = new JPanel();
         networkOptionPanel.setLayout(new BoxLayout(networkOptionPanel, BoxLayout.X_AXIS));
         networkOptionPanel.setBorder(new EmptyBorder(3,5,3,5));
+        networkOptionPanel.setPreferredSize(new Dimension((int) networkOptionPanel.getPreferredSize().getWidth(), 40));
         networkOptionPanel.setBackground(OPTION_PANEL_BACKGROUND);
 
         connectButton = new JButton("Connect");
@@ -134,24 +147,33 @@ public class GUI extends JFrame {
         connectButton.addActionListener(new ConnectClickListener());
         connectButton.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        clientIDLabel = new JLabel("");
-        clientIDLabel.setFont(new Font("Arial", Font.PLAIN, 20));
-        clientIDLabel.setAlignmentX(Component.RIGHT_ALIGNMENT);
-        clientIDLabel.setForeground(BACKGROUND);
+        disconnectButton = new JButton("Disconnect");
+        disconnectButton.setFont(new Font("Arial", Font.PLAIN, 17));
+        disconnectButton.addActionListener(new DisconnectClickListener());
+        disconnectButton.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        networkOptionPanel.add(connectButton);
+        networkLabel = new JLabel("");
+        networkLabel.setFont(new Font("Arial", Font.PLAIN, 20));
+        networkLabel.setAlignmentX(Component.RIGHT_ALIGNMENT);
+        networkLabel.setForeground(BACKGROUND);
+
+        playerLabel = new JLabel("");
+        playerLabel.setFont(new Font("Arial", Font.PLAIN, 35));
+        playerLabel.setAlignmentX(Component.RIGHT_ALIGNMENT);
+        playerLabel.setForeground(BACKGROUND);
+
+        networkButton = new JButton();
+        networkButton.setPreferredSize(new Dimension(110, networkButton.getPreferredSize().height));
+        setNetworkButtonFunction(true);
+
+        networkOptionPanel.add(networkButton);
         networkOptionPanel.add(Box.createHorizontalGlue());
-        networkOptionPanel.add(clientIDLabel);
+        networkOptionPanel.add(networkLabel);
         networkOptionPanel.add(Box.createHorizontalGlue());
+        networkOptionPanel.add(playerLabel);
+        networkOptionPanel.add(Box.createRigidArea(new Dimension(20,-1)));
 
-        JPanel bottomPanel = new JPanel();
-        bottomPanel.setLayout(new BoxLayout(bottomPanel, BoxLayout.Y_AXIS));
-        bottomPanel.setBackground(OPTION_PANEL_BACKGROUND);
-
-        bottomPanel.add(gameOptionPanel);
-        bottomPanel.add(networkOptionPanel);
-
-        return bottomPanel;
+        return networkOptionPanel;
     }
 
     private class CellClickListener implements ActionListener {
@@ -168,15 +190,17 @@ public class GUI extends JFrame {
         @Override
         public void actionPerformed(ActionEvent e) {
             currentMove = new int[]{boardIndex, row, col};
-            ClientMain.client.turn(currentMove);
+            if (ClientMain.client != null) {
+                ClientMain.client.turn(currentMove);
+            }
         }
     }
 
     private class NewGameClickListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
-            synchronized (newGameButton) {
-                newGameButton.notify();
+            if (ClientMain.client != null) {
+                ClientMain.client.sendNewGame();
             }
         }
     }
@@ -185,33 +209,42 @@ public class GUI extends JFrame {
         @Override
         public void actionPerformed(ActionEvent e) {
             ClientMain.startClient();
-            ClientMain.client.waitForClientID();
-            setClientIDLabel(ClientMain.client.clientID);
+            setNetworkButtonFunction(false);
         }
     }
 
-    public void waitForNewGame() {
-        synchronized(newGameButton) {
-            try {
-                newGameButton.wait();
-            } catch (InterruptedException e) {
-                newGameButton.notifyAll();
+    private class DisconnectClickListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            if (ClientMain.client != null) {
+                ClientMain.client.disconnect();
+                setNetworkButtonFunction(true);
             }
         }
     }
 
-    public int[] waitForMove(GameLoop gameLoop) {
-        synchronized(cells) {
-            try{
-                cells.wait();
-            } catch (InterruptedException e) {
-                cells.notifyAll();
-                gameLoop.gameLoopExecuting = false;
-                return null;
-            }
-        }
-        return currentMove;
-    }
+//    public void waitForNewGame() {
+//        synchronized(newGameButton) {
+//            try {
+//                newGameButton.wait();
+//            } catch (InterruptedException e) {
+//                newGameButton.notifyAll();
+//            }
+//        }
+//    }
+
+//    public int[] waitForMove(GameLoop gameLoop) {
+//        synchronized(cells) {
+//            try{
+//                cells.wait();
+//            } catch (InterruptedException e) {
+//                cells.notifyAll();
+//                gameLoop.gameLoopExecuting = false;
+//                return null;
+//            }
+//        }
+//        return currentMove;
+//    }
 
     public void updateBoard(Board board) {
         try {
@@ -236,12 +269,12 @@ public class GUI extends JFrame {
         }
     }
 
-    public void setBoardColours(Board board) {
+    public void setBoardColours(Board board, String clientPlayer) {
         try {
             SwingUtilities.invokeAndWait(() -> {
                 Color col;
                 for (int i = 0; i < boardPanels.length; i++) {
-                    if (board.getCorrectLocalBoard() == i && !board.isWon) {
+                    if (board.getCorrectLocalBoard() == i && !board.isWon && board.whoseTurn().equals(clientPlayer)) {
                         col = BOARD_INDICATOR;
                     } else if (board.isWonBoard(i)) {
                         if (boardPanels[i].getComponent(0).getFont().getSize() != 80) {
@@ -259,6 +292,30 @@ public class GUI extends JFrame {
         }
     }
 
+    public void setNetworkButtonFunction(Boolean isConnect) {
+        if (!SwingUtilities.isEventDispatchThread()) {
+            SwingUtilities.invokeLater(() -> {
+                setNetworkButtonFunction(isConnect);
+            });
+        } else {
+            if (ClientMain.client != null) {
+                if (isConnect == ClientMain.client.isConnected()) {
+                    return;
+                }
+            }
+            JButton[] networkButtons = new JButton[]{connectButton, disconnectButton};
+            int buttonSelector = isConnect ? 0 : 1;
+
+            for (ActionListener listener: networkButton.getActionListeners()) {
+                networkButton.removeActionListener(listener);
+            }
+            networkButton.setText(networkButtons[buttonSelector].getText());
+            networkButton.addActionListener(networkButtons[buttonSelector].getActionListeners()[0]);
+            networkButton.revalidate();
+            networkButton.repaint();
+        }
+    }
+
     public void setBottomLabel(String text, boolean error) {
         Color color = BACKGROUND;
         if (error) color = ERROR;
@@ -266,11 +323,26 @@ public class GUI extends JFrame {
         bottomLabel.setText(text);
     }
 
-    public void setClientIDLabel(int clientID) {
-        clientIDLabel.setText("ClientID : " + clientID);
+    public void setNetworkLabel(int clientID) {
+        networkLabel.setForeground(BACKGROUND);
+        networkLabel.setText("cID:" + clientID);
     }
 
-    public void resetBoard() {
+    public void setNetworkLabel(String text, boolean error) {
+        Color color = BACKGROUND;
+        if (error) color = ERROR;
+        networkLabel.setForeground(color);
+        networkLabel.setText(text);
+    }
+
+    public void setPlayerLabel(String player, boolean isTurn) {
+        Color color = BACKGROUND;
+        if (isTurn) color = ERROR;
+        playerLabel.setForeground(color);
+        playerLabel.setText(player);
+    }
+
+    public void resetBoardPanels() {
         try {
             SwingUtilities.invokeAndWait(() -> {
                 mainPanel.removeAll();
@@ -292,12 +364,27 @@ public class GUI extends JFrame {
         bottomLabel.setText("");
     }
 
+    public void clearNetworkLabel() {
+        networkLabel.setForeground(BACKGROUND);
+        networkLabel.setText("");
+    }
+
+    public void clearPlayerLabel() {
+        playerLabel.setForeground(BACKGROUND);
+        playerLabel.setText("");
+    }
+
     public String getMode() {
         return (String) selectMode.getSelectedItem();
     }
 
+    public String getPlayerLabel() {
+        return playerLabel.getText();
+    }
+
     public static void startGUI() throws InterruptedException, InvocationTargetException {
-        System.setProperty( "apple.awt.application.appearance", "system" );
+        System.setProperty("apple.awt.application.appearance", "system");
+        System.setProperty("apple.awt.application.name", "Ultimate Noughts and Crosses");
 
         SwingUtilities.invokeAndWait(() -> {
             frame = new GUI();

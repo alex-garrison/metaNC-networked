@@ -16,17 +16,12 @@ public class ServerClient {
         this.clientID = this.hashCode();
 
         System.out.println("Accepted serverClient " + clientID);
+
+        new Thread(new monitor(this)).start();
     }
 
     public void stopClient() {
-        try {
-            serverClientHandler.stopRunning();
-            serverClientHandlerThread.join();
-            serverClientSocket.close();
-            System.out.println("closed serverclient " + clientID);
-        } catch (IOException | InterruptedException e) {
-            System.out.println("Error stopping client : " + e);
-        }
+        serverClientHandler.stopRunning();
     }
 
     public int getClientID() {
@@ -35,6 +30,33 @@ public class ServerClient {
 
     public ServerClientHandler getServerClientHandler() {
         return serverClientHandler;
+    }
+
+    public Socket getServerClientSocket() {
+        return serverClientSocket;
+    }
+
+    private class monitor implements Runnable {
+        ServerClient serverClient;
+        public monitor(ServerClient serverClient) {
+            this.serverClient = serverClient;
+        }
+        public void run() {
+            try {
+                serverClientHandlerThread.join();
+            } catch (InterruptedException e) {
+                System.out.println("Error waiting for serverClientHandlerThread to stop");
+            } finally {
+                if (serverClientSocket != null) {
+                    try {
+                        serverClientSocket.close();
+                    } catch (IOException e) {
+                        System.out.println("Error closing serverClientSocket : " + e);
+                    }
+                }
+                Server.serverClientDisconnected(serverClient);
+            }
+        }
     }
 
 }
