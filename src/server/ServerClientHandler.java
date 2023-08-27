@@ -20,7 +20,7 @@ public class ServerClientHandler implements Runnable {
         try {
             serverClientSocket.setSoTimeout(TIMEOUT_MILLIS);
         } catch (IOException e) {
-            System.out.println("Error setting timeout");
+            ServerGUI.println("Error setting timeout");
         }
 
         keepRunning = true;
@@ -42,7 +42,7 @@ public class ServerClientHandler implements Runnable {
 
         while (keepRunning) {
             if (!reader.keepRunning) {
-                System.out.println("Reader has stopped");
+                ServerGUI.println("Reader has stopped");
                 keepRunning = false; continue;
             }
             try {
@@ -56,7 +56,7 @@ public class ServerClientHandler implements Runnable {
         try {
             readerThread.join();
         } catch (InterruptedException e) {
-            System.out.println("Error waiting for readerThread to stop");
+            ServerGUI.println("Error waiting for readerThread to stop");
         }
 
         writer.close();
@@ -131,7 +131,7 @@ public class ServerClientHandler implements Runnable {
                     try {
                         reader = new BufferedReader(new InputStreamReader(serverClientSocket.getInputStream()));
                     } catch (IOException e) {
-                        System.out.println("Error initialising reader : " + e); continue;
+                        ServerGUI.println("Error initialising reader : " + e); continue;
                     }
                 }
 
@@ -154,7 +154,7 @@ public class ServerClientHandler implements Runnable {
                                     try {
                                         Server.server.setGameMode(args[1]);
                                     } catch (NumberFormatException e) {
-                                        System.out.println("Error with SETMODE command");
+                                        ServerGUI.println("Error with SETMODE command");
                                     }
                                     break;
                                 case "TURN":
@@ -166,7 +166,7 @@ public class ServerClientHandler implements Runnable {
                                         }
                                         Server.turn(location, clientID);
                                     } catch (NumberFormatException e) {
-                                        System.out.println("Error with TURN command");
+                                        ServerGUI.println("Error with TURN command");
                                     }
                                     break;
                                 case "DISCONNECT":
@@ -176,19 +176,17 @@ public class ServerClientHandler implements Runnable {
                                     Server.newGame(clientID);
                                     break;
                                 case default:
-                                    System.out.println("Client sent : " + receivedData);
+                                    ServerGUI.println("Client sent : " + receivedData);
                                 }
                         }
-                    }  catch (SocketTimeoutException e) {
-                        continue;
-                    } catch (IOException e) {
-                        System.out.println("Error reading data : " + e);
+                    }  catch (SocketTimeoutException e) {} catch (IOException e) {
+                        ServerGUI.println("Error reading data : " + e);
                         keepRunning = false;
                     } catch (InterruptedException e) {
                         throw new RuntimeException(e);
                     }
                 } else {
-                    System.out.println("Sockets closed");
+                    ServerGUI.println("Sockets closed");
                     keepRunning = false;
                 }
             }
@@ -197,7 +195,7 @@ public class ServerClientHandler implements Runnable {
                 try {
                     reader.close();
                 } catch (IOException e) {
-                    System.out.println("Error closing reader" + e);
+                    ServerGUI.println("Error closing reader" + e);
                 }
             }
 
@@ -216,7 +214,7 @@ public class ServerClientHandler implements Runnable {
             try {
                 writer = new BufferedWriter(new OutputStreamWriter(serverClientSocket.getOutputStream()));
             } catch (IOException e) {
-                System.out.println("Error initialising writer : " + e);
+                ServerGUI.println("Error initialising writer : " + e);
             }
         }
 
@@ -230,13 +228,11 @@ public class ServerClientHandler implements Runnable {
                     writer.newLine();
                     writer.flush();
                     messageSent = true;
-                } catch (SocketTimeoutException e) {
-                    continue;
-                } catch (IOException e) {
+                } catch (SocketTimeoutException e) {} catch (IOException e) {
                     if (errorCount >= 5) {
                         close();
                     } else {
-                        System.out.println("Error sending message : " + e);
+                        ServerGUI.println("Error sending message : " + e);
                         errorCount++;
                     }
                 }
@@ -248,7 +244,7 @@ public class ServerClientHandler implements Runnable {
                 try {
                     writer.close();
                 } catch (IOException e) {
-                    System.out.println("Error closing writer" + e);
+                    ServerGUI.println("Error closing writer" + e);
                 }
             }
         }

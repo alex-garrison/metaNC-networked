@@ -14,7 +14,7 @@ public class Board {
     public Win[] localBoardWins;
     private final TreeSet<Integer> wonBoards;
     private final TreeSet<Integer> openBoards;
-    private HashMap<Integer, String> players;
+    private final HashMap<Integer, String> players;
 
     public boolean isWon;
     public String winner;
@@ -115,7 +115,7 @@ public class Board {
         if (lastMove[0] == -1) {
             lastMoveString = "---";
         } else {
-            lastMoveString = String.valueOf(lastMove[0]) + String.valueOf(lastMove[1]) + String.valueOf(lastMove[2]);
+            lastMoveString = String.valueOf(lastMove[0]) + (lastMove[1]) + (lastMove[2]);
         }
         output.append("<").append(lastMoveString);
         output.append(",").append(turn).append(">");
@@ -183,13 +183,6 @@ public class Board {
                     lastMove = location;
                 } else {
                     throw new GameException("Move not valid");
-//                    if (!isValidMove(location)) {
-//                        throw new GameException("Move not valid");
-//                    } else if (isInWonBoard(location)) {
-//                        throw new GameException("Move in won board");
-//                    } else if (isInCorrectLocalBoard(location)) {
-//                        throw new GameException("Move in wrong board");
-//                    }
                 }
 
                 turn = invertPlayer(turn);

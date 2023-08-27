@@ -4,9 +4,8 @@ public class ClientMain {
     public static Client client;
     private static Thread clientThread;
     public static void main(String[] args) {
-
         try {
-            GUI.startGUI();
+            ClientGUI.startGUI();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

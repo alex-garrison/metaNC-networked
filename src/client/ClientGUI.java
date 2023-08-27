@@ -7,10 +7,9 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.lang.reflect.InvocationTargetException;
-import java.util.Arrays;
 
-public class GUI extends JFrame {
-    public static GUI frame;
+public class ClientGUI extends JFrame {
+    public static ClientGUI frame;
 
     private final Color BACKGROUND = new Color(224, 225, 221);
     private final Color LINE = new Color(13, 27, 42);
@@ -36,7 +35,7 @@ public class GUI extends JFrame {
 
     private int[] currentMove;
 
-    public GUI() {
+    public ClientGUI() {
         initGUI();
     }
 
@@ -45,6 +44,7 @@ public class GUI extends JFrame {
         setMinimumSize(new Dimension(450, 500));
         setResizable(false);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        getContentPane().setBackground(OPTION_PANEL_BACKGROUND);
 
         mainPanel = new JPanel();
         mainPanel.setLayout(new GridLayout(3,3));
@@ -223,29 +223,6 @@ public class GUI extends JFrame {
         }
     }
 
-//    public void waitForNewGame() {
-//        synchronized(newGameButton) {
-//            try {
-//                newGameButton.wait();
-//            } catch (InterruptedException e) {
-//                newGameButton.notifyAll();
-//            }
-//        }
-//    }
-
-//    public int[] waitForMove(GameLoop gameLoop) {
-//        synchronized(cells) {
-//            try{
-//                cells.wait();
-//            } catch (InterruptedException e) {
-//                cells.notifyAll();
-//                gameLoop.gameLoopExecuting = false;
-//                return null;
-//            }
-//        }
-//        return currentMove;
-//    }
-
     public void updateBoard(Board board) {
         try {
             SwingUtilities.invokeAndWait(() -> {
@@ -294,9 +271,7 @@ public class GUI extends JFrame {
 
     public void setNetworkButtonFunction(Boolean isConnect) {
         if (!SwingUtilities.isEventDispatchThread()) {
-            SwingUtilities.invokeLater(() -> {
-                setNetworkButtonFunction(isConnect);
-            });
+            SwingUtilities.invokeLater(() -> setNetworkButtonFunction(isConnect));
         } else {
             if (ClientMain.client != null) {
                 if (isConnect == ClientMain.client.isConnected()) {
@@ -387,7 +362,7 @@ public class GUI extends JFrame {
         System.setProperty("apple.awt.application.name", "Ultimate Noughts and Crosses");
 
         SwingUtilities.invokeAndWait(() -> {
-            frame = new GUI();
+            frame = new ClientGUI();
             frame.setVisible(true);
         });
     }

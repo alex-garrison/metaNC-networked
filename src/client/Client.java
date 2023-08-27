@@ -24,20 +24,21 @@ public class Client implements Runnable {
 
     public void run() {
         try {
-            host = InetAddress.getByName("192.168.86.202");
+//            host = InetAddress.getByName("192.168.86.202");
+            host = InetAddress.getLocalHost();
         } catch (UnknownHostException e) {
             System.out.println("Error initialising host");
         }
 
-        GUI.frame.resetBoardPanels();
-        GUI.frame.clearBottomLabel();
-        GUI.frame.clearNetworkLabel();
-        GUI.frame.clearPlayerLabel();
+        ClientGUI.frame.resetBoardPanels();
+        ClientGUI.frame.clearBottomLabel();
+        ClientGUI.frame.clearNetworkLabel();
+        ClientGUI.frame.clearPlayerLabel();
 
         if (connectToServer()) {
             System.out.println("Connected to server : " + clientSocket);
             isConnected = true;
-            GUI.frame.setNetworkButtonFunction(false);
+            ClientGUI.frame.setNetworkButtonFunction(false);
 
             reader = new ClientReader();
             Thread readerThread = new Thread(reader);
@@ -53,11 +54,11 @@ public class Client implements Runnable {
             writer.close();
 
             isConnected = false;
-            GUI.frame.setNetworkLabel("Server disconnected" , true);
-            GUI.frame.clearPlayerLabel();
+            ClientGUI.frame.setNetworkLabel("Server disconnected" , true);
+            ClientGUI.frame.clearPlayerLabel();
 
         } else {
-            GUI.frame.setNetworkLabel("Error connecting" , true);
+            ClientGUI.frame.setNetworkLabel("Error connecting" , true);
         }
 
         if (clientSocket != null) {
@@ -68,9 +69,9 @@ public class Client implements Runnable {
             }
         }
 
-        System.out.println("Client stoppped");
+        System.out.println("Client stopped");
 
-        GUI.frame.setNetworkButtonFunction(true);
+        ClientGUI.frame.setNetworkButtonFunction(true);
     }
 
     public void turn(int[] location) {
@@ -119,28 +120,28 @@ public class Client implements Runnable {
     public void sendNewGame() {
         if (writer != null) {
             writer.send("NEWGAME");
-            writer.send("SETMODE:" + GUI.frame.getMode());
+            writer.send("SETMODE:" + ClientGUI.frame.getMode());
         }
     }
 
     private void setClientID(int clientID) {
         this.clientID = clientID;
-        GUI.frame.setNetworkLabel(ClientMain.client.getClientID());
+        ClientGUI.frame.setNetworkLabel(ClientMain.client.getClientID());
         System.out.println("Set clientID : " + clientID);
     }
 
     public void setPlayer(String player) {
         this.player = player;
-        GUI.frame.setPlayerLabel(this.player, false);
+        ClientGUI.frame.setPlayerLabel(this.player, false);
     }
 
     public void setClientTurn(boolean isClientTurn) {
-        GUI.frame.setPlayerLabel(GUI.frame.getPlayerLabel(), isClientTurn);
+        ClientGUI.frame.setPlayerLabel(ClientGUI.frame.getPlayerLabel(), isClientTurn);
         this.isClientTurn = true;
     }
 
     public void boardWon() {
-        GUI.frame.setBottomLabel("Board won", false);
+        ClientGUI.frame.setBottomLabel("Board won", false);
     }
 
     public int getClientID() {
@@ -161,14 +162,14 @@ public class Client implements Runnable {
             }
 
             if (newBoard.isEmptyBoard()) {
-                GUI.frame.resetBoardPanels();
-                GUI.frame.clearBottomLabel();
+                ClientGUI.frame.resetBoardPanels();
+                ClientGUI.frame.clearBottomLabel();
             }
 
             newBoard.isWin();
-            GUI.frame.updateBoard(newBoard);
-            GUI.frame.setBoardColours(newBoard, player);
-            GUI.frame.clearBottomLabel();
+            ClientGUI.frame.updateBoard(newBoard);
+            ClientGUI.frame.setBoardColours(newBoard, player);
+            ClientGUI.frame.clearBottomLabel();
         } catch (GameException e) {
             System.out.println("Board error : " + e);
         }
@@ -242,8 +243,7 @@ public class Client implements Runnable {
                                     }
                                     break;
                                 case "NEWGAME":
-                                    System.out.println("recieved new game");
-                                    GUI.frame.clearPlayerLabel();
+                                    ClientGUI.frame.clearPlayerLabel();
                                     break;
                                 case "ASSIGNPLAYER":
                                     try {
@@ -260,7 +260,7 @@ public class Client implements Runnable {
                                     break;
                                 case "ERROR":
                                     try {
-                                        GUI.frame.setBottomLabel(args[1], true);
+                                        ClientGUI.frame.setBottomLabel(args[1], true);
                                     } catch (IndexOutOfBoundsException e) {
                                         System.out.println("Error with ERROR command");
                                     } catch (Exception e) {
@@ -317,9 +317,7 @@ public class Client implements Runnable {
                     writer.newLine();
                     writer.flush();
                     messageSent = true;
-                } catch (SocketTimeoutException e) {
-                    continue;
-                } catch (IOException e) {
+                } catch (SocketTimeoutException e) {} catch (IOException e) {
                     if (errorCount >= 5) {
                         return;
                     } else {

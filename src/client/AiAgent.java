@@ -14,10 +14,6 @@ public class AiAgent {
         return getRandomMove();
     }
 
-    public String getStarter() {
-        return new String[]{"X", "O"}[rand.nextInt(1)];
-    }
-
     private int[] getRandomMove() throws GameException {
         int[][] validMoves = board.getValidMovesAI();
         if (validMoves.length < 1) {

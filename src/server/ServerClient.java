@@ -15,7 +15,7 @@ public class ServerClient {
         this.serverClientHandlerThread = serverClientHandlerThread;
         this.clientID = this.hashCode();
 
-        System.out.println("Accepted serverClient " + clientID);
+        ServerGUI.println("Accepted serverClient " + clientID);
 
         new Thread(new monitor(this)).start();
     }
@@ -45,13 +45,13 @@ public class ServerClient {
             try {
                 serverClientHandlerThread.join();
             } catch (InterruptedException e) {
-                System.out.println("Error waiting for serverClientHandlerThread to stop");
+                ServerGUI.println("Error waiting for serverClientHandlerThread to stop");
             } finally {
                 if (serverClientSocket != null) {
                     try {
                         serverClientSocket.close();
                     } catch (IOException e) {
-                        System.out.println("Error closing serverClientSocket : " + e);
+                        ServerGUI.println("Error closing serverClientSocket : " + e);
                     }
                 }
                 Server.serverClientDisconnected(serverClient);
