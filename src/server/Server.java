@@ -10,11 +10,12 @@ import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 
 public class Server implements Runnable {
-    private final int PORT = 8000;
+    private static final int PORT = 8000;
     private final int TIMEOUT_MILLIS = 2000;
     private final static int AI_MOVE_DELAY = 80;
 
     public static Server server;
+    public static int serverID;
 
     private ServerSocket serverSocket;
     private static Board serverBoard;
@@ -38,45 +39,41 @@ public class Server implements Runnable {
         isNewGame = false;
 
         server = this;
+        serverID = this.hashCode();
     }
 
     @Override
     public void run() {
-        ServerGUI.println("Started server");
+        println("Started server");
 
         try {
             serverSocket = new ServerSocket(PORT);
             serverSocket.setSoTimeout(TIMEOUT_MILLIS);
         } catch (IOException e) {
-            ServerGUI.println("Error initialising server : " + e);
+            println("Error initialising server : " + e);
         }
 
-        try {
-            ServerGUI.setNetworkLabel(InetAddress.getLocalHost(), PORT);
-        } catch (UnknownHostException e) {
-            ServerGUI.println("Error setting network label : " + e);
-        }
+        setNetworkLabel();
 
-        awaitServerClients();
-        ServerGUI.println("Got serverClients");
+        if (awaitServerClients()) println("Got serverClients");
 
         awaitGamemode();
-
         awaitNewGame(true);
 
         serverGameLoop();
 
         broadcast("DISCONNECT");
-
-        ServerGUI.println("Disconnecting from clients");
-
+        println("Disconnecting from clients");
         closeClients();
 
         try {
             serverSocket.close();
         } catch (IOException e) {
-            ServerGUI.println("Error closing serverSocket : " + e.getMessage());
+            println("Error closing serverSocket : " + e.getMessage());
         }
+
+        println("Server stopped");
+
     }
 
     public static void turn(int[] location, int clientID) {
@@ -101,7 +98,7 @@ public class Server implements Runnable {
                 if (serverClient != null) {
                     send(serverClient, "ERROR:"+e.getMessage());
                 } else {
-                    ServerGUI.println("Error with turn : " + e.getMessage());
+                    println("Error with turn : " + e.getMessage());
                 }
 
                 if (e.getMessage().equals("Move not valid")) {
@@ -118,7 +115,7 @@ public class Server implements Runnable {
                 Thread.sleep(AI_MOVE_DELAY);
                 turn(ai.getMove(), serverBoard.getCurrentClientID());
             } catch (GameException e) {
-                ServerGUI.println("Error with AI turn : " + e);
+                println("Error with AI turn : " + e);
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
@@ -136,14 +133,34 @@ public class Server implements Runnable {
             try {
                 serverClient.getServerClientHandler().send(message);
             } catch(Exception e){
-                ServerGUI.println("Error sending message : " + message + " : " + e);
+                println("Error sending message : " + message + " : " + e);
             }
+        }
+    }
+
+    public static void println(String text) {
+        ServerGUI.println(text);
+    }
+
+    public static void setNetworkLabel() {
+        try {
+            ServerGUI.setNetworkLabel(InetAddress.getLocalHost(), PORT);
+        } catch (UnknownHostException e) {
+            println("Error setting network label : " + e);
         }
     }
 
     private void closeClients() {
         for (ServerClient serverClient : serverClients) {
             serverClient.stopClient();
+        }
+
+        while (serverClients.size() != 0) {
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 
@@ -155,12 +172,16 @@ public class Server implements Runnable {
 
     public static void serverClientDisconnected(ServerClient serverClient) {
         serverClients.remove(serverClient);
-        ServerGUI.println("serverClient " + serverClient.getClientID() + " disconnected");
+        println("serverClient " + serverClient.getClientID() + " disconnected");
         serverRunning = false; gameRunning = false;
     }
 
-    private void awaitServerClients() {
-        while (serverClients.size() < 2 && serverRunning) {
+    private boolean awaitServerClients() {
+        while (serverClients.size() < 2) {
+            if (!serverRunning) {
+                return false;
+            }
+
             try {
                 Socket serverClientSocket = serverSocket.accept();
                 ServerClientHandler serverClientHandler = new ServerClientHandler(serverClientSocket);
@@ -172,9 +193,11 @@ public class Server implements Runnable {
                 serverClientHandler.setClientID(serverClient.getClientID());
                 serverClients.add(serverClient);
             } catch (SocketTimeoutException e) {} catch (IOException e) {
-                ServerGUI.println("Error accepting serverClient : " + e);
+                println("Error accepting serverClient : " + e);
             }
         }
+
+        return true;
     }
 
     public static void newGame(int clientID) {
@@ -259,7 +282,7 @@ public class Server implements Runnable {
                 }
 
 
-                while (gameRunning) {
+                while (gameRunning && serverRunning) {
                     if (serverBoard.isWon) {
                         if (isPVP) {
                             broadcast("BOARDWON");
@@ -288,7 +311,7 @@ public class Server implements Runnable {
     public boolean setupClients() {
         boolean clientsAssigned = false;
 
-        ServerGUI.println("Mode is : " + gameMode);
+        println("Mode is : " + gameMode);
 
         if (isPVP) {
             try {
@@ -296,30 +319,30 @@ public class Server implements Runnable {
                 for (ServerClient serverClient : serverClients) {
                     try {
                         String player = serverBoard.addPlayer(serverClient.getClientID());
-                        ServerGUI.println(serverClient.getClientID() + " assigned player : " + player);
+                        println(serverClient.getClientID() + " assigned player : " + player);
                         send(serverClient, "ASSIGNPLAYER:" + player);
                         clientsAssigned = true;
                     } catch (GameException e) {
-                        ServerGUI.println("Error assigning player : " + e.getMessage());
+                        println("Error assigning player : " + e.getMessage());
                         clientsAssigned = false;
                         break;
                     }
                 }
             } catch (ConcurrentModificationException e) {
-                ServerGUI.println("Error assigning players");
+                println("Error assigning players");
                 clientsAssigned = false;
             }
         } else if (isPVAI) {
             try {
                 serverBoard.clearPlayers();
                 String player = serverBoard.addPlayer(currentClient.getClientID());
-                ServerGUI.println(currentClient.getClientID() + " assigned player : " + player);
+                println(currentClient.getClientID() + " assigned player : " + player);
                 send(currentClient, "ASSIGNPLAYER:" + player);
                 String aiPlayer = serverBoard.addPlayer();
-                ServerGUI.println("AI assigned player : " + aiPlayer);
+                println("AI assigned player : " + aiPlayer);
                 clientsAssigned = true;
             } catch (GameException e) {
-                ServerGUI.println("Error assigning player : " + e.getMessage());
+                println("Error assigning player : " + e.getMessage());
                 clientsAssigned = false;
             }
         } else if (isAIVAI) {
@@ -327,19 +350,17 @@ public class Server implements Runnable {
                 serverBoard.clearPlayers();
                 for (int i = 0; i < 2; i++) {
                     String aiPlayer = serverBoard.addPlayer(i);
-                    ServerGUI.println("AI " + i + " assigned player : " + aiPlayer);
+                    println("AI " + i + " assigned player : " + aiPlayer);
                 }
                 clientsAssigned = true;
             } catch (GameException e) {
-                ServerGUI.println("Error assigning player : " + e.getMessage());
+                println("Error assigning player : " + e.getMessage());
                 clientsAssigned = false;
             }
         }
 
         return clientsAssigned;
     }
-
-
 
     public static ServerClient getServerClientFromClientID(int clientID) {
         for (ServerClient serverClient: serverClients) {
@@ -355,6 +376,6 @@ public class Server implements Runnable {
     }
 
     public static void stopRunning() {
-        serverRunning = false;
+        serverRunning = false; gameRunning = false;
     }
 }

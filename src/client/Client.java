@@ -4,10 +4,11 @@ import java.io.*;
 import java.net.*;
 
 public class Client implements Runnable {
-    private final int PORT = 8000;
+    private InetAddress host;
+    private int port;
+
     private final int TIMEOUT_MILLIS = 500;
 
-    private InetAddress host;
     private int clientID;
     private String player;
     private boolean isClientTurn;
@@ -17,19 +18,15 @@ public class Client implements Runnable {
     private ClientWriter writer;
     private ClientReader reader;
 
-    public Client() {
+    public Client(InetAddress host, int port) {
+        this.host = host;
+        this.port = port;
+
         clientID = -1;
         isConnected = false;
     }
 
     public void run() {
-        try {
-//            host = InetAddress.getByName("192.168.86.202");
-            host = InetAddress.getLocalHost();
-        } catch (UnknownHostException e) {
-            System.out.println("Error initialising host");
-        }
-
         ClientGUI.frame.resetBoardPanels();
         ClientGUI.frame.clearBottomLabel();
         ClientGUI.frame.clearNetworkLabel();
@@ -90,7 +87,7 @@ public class Client implements Runnable {
                 break;
             }
             try {
-                clientSocket = new Socket(host.getHostName(), PORT);
+                clientSocket = new Socket(host.getHostName(), port);
                 clientSocket.setSoTimeout(TIMEOUT_MILLIS);
                 return true;
             } catch (IOException e) {
@@ -273,9 +270,7 @@ public class Client implements Runnable {
                                     System.out.println("Server sent : " + receivedData);
                             }
                         }
-                    }  catch (SocketTimeoutException e) {
-                        continue;
-                    } catch (IOException e) {
+                    }  catch (SocketTimeoutException e) {} catch (IOException e) {
                         System.out.println("Error reading data : " + e);
                         keepRunning = false;
                     }

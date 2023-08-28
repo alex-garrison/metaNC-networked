@@ -7,6 +7,8 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.lang.reflect.InvocationTargetException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 
 public class ClientGUI extends JFrame {
     public static ClientGUI frame;
@@ -30,10 +32,12 @@ public class ClientGUI extends JFrame {
     private JButton networkButton;
     private JButton connectButton;
     private JButton disconnectButton;
+    private JButton networkConfigButton;
     private JLabel networkLabel;
     private JLabel playerLabel;
 
     private int[] currentMove;
+    private int clientID;
 
     public ClientGUI() {
         initGUI();
@@ -152,6 +156,11 @@ public class ClientGUI extends JFrame {
         disconnectButton.addActionListener(new DisconnectClickListener());
         disconnectButton.setAlignmentX(Component.LEFT_ALIGNMENT);
 
+        ImageIcon configIcon = new ImageIcon("/Users/alex/Programming/NEA/Actual/metaNC-networked/src/client/configIcon.png");
+        configIcon = new ImageIcon(configIcon.getImage().getScaledInstance(20,20, java.awt.Image.SCALE_SMOOTH));
+        networkConfigButton = new JButton(configIcon);
+        networkConfigButton.addActionListener(new NetworkConfigListener());
+
         networkLabel = new JLabel("");
         networkLabel.setFont(new Font("Arial", Font.PLAIN, 20));
         networkLabel.setAlignmentX(Component.RIGHT_ALIGNMENT);
@@ -167,6 +176,8 @@ public class ClientGUI extends JFrame {
         setNetworkButtonFunction(true);
 
         networkOptionPanel.add(networkButton);
+        networkOptionPanel.add(networkConfigButton);
+        networkOptionPanel.add(Box.createRigidArea(new Dimension(5,-1)));
         networkOptionPanel.add(Box.createHorizontalGlue());
         networkOptionPanel.add(networkLabel);
         networkOptionPanel.add(Box.createHorizontalGlue());
@@ -208,6 +219,17 @@ public class ClientGUI extends JFrame {
     private class ConnectClickListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
+            if (!ClientMain.isHostSet()) {
+                IPAndPortDialog dialog = new IPAndPortDialog(frame);
+                dialog.setVisible(true);
+
+                if (dialog.getIpAddress() != null && dialog.getPort() != 0) {
+                    ClientMain.setHostAndPort(dialog.getIpAddress(), dialog.getPort());
+                } else {
+                    return;
+                }
+            }
+
             ClientMain.startClient();
             setNetworkButtonFunction(false);
         }
@@ -219,6 +241,18 @@ public class ClientGUI extends JFrame {
             if (ClientMain.client != null) {
                 ClientMain.client.disconnect();
                 setNetworkButtonFunction(true);
+            }
+        }
+    }
+
+    private class NetworkConfigListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            IPAndPortDialog dialog = new IPAndPortDialog(frame);
+            dialog.setVisible(true);
+
+            if (dialog.getIpAddress() != null && dialog.getPort() != 0) {
+                ClientMain.setHostAndPort(dialog.getIpAddress(), dialog.getPort());
             }
         }
     }
@@ -299,8 +333,7 @@ public class ClientGUI extends JFrame {
     }
 
     public void setNetworkLabel(int clientID) {
-        networkLabel.setForeground(BACKGROUND);
-        networkLabel.setText("cID:" + clientID);
+        this.clientID = clientID;
     }
 
     public void setNetworkLabel(String text, boolean error) {
@@ -365,5 +398,122 @@ public class ClientGUI extends JFrame {
             frame = new ClientGUI();
             frame.setVisible(true);
         });
+    }
+
+    class IPAndPortDialog extends JDialog {
+        private InetAddress DEFAULT_HOST;
+        private final int DEFAULT_PORT = 8000;
+
+        private JTextField ipField;
+        private JTextField portField;
+        private JTextPane clientIDPane;
+        private JButton okButton;
+        private JButton cancelButton;
+
+        private InetAddress ipAddress;
+        private int port;
+
+        public IPAndPortDialog(Frame parent) {
+            super(parent, "Enter IP and Port", true);
+            setMinimumSize(new Dimension(250, 175));
+            setResizable(false);
+
+            try {
+                DEFAULT_HOST = InetAddress.getLocalHost();
+            } catch (UnknownHostException e) {
+                System.out.println("Could not get localHost : " + e);
+            }
+
+            ipField = new JTextField(DEFAULT_HOST.getHostAddress(), 15);
+            ipField.setFont(new Font("monospaced", Font.PLAIN, 13));
+            if (ClientMain.getHost() != null) {
+                ipField.setText(ClientMain.getHost().getHostAddress());
+            }
+            ipField.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+            portField = new JTextField(String.valueOf(DEFAULT_PORT), 5);
+            portField.setFont(new Font("monospaced", Font.PLAIN, 13));
+            if (ClientMain.getPort() != 0) {
+                portField.setText(String.valueOf(ClientMain.getPort()));
+            }
+            portField.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+            clientIDPane = new JTextPane();
+            clientIDPane.setFont(new Font("monospaced", Font.PLAIN, 13));
+            clientIDPane.setForeground(BACKGROUND);
+            clientIDPane.setEditable(false);
+            clientIDPane.setBackground(null);
+            clientIDPane.setBorder(null);
+            if (clientID != 0) {
+                clientIDPane.setText(String.valueOf(clientID));
+            } else {
+                clientIDPane.setText("-");
+            }
+
+            okButton = new JButton("OK");
+            cancelButton = new JButton("Cancel");
+
+            okButton.addActionListener(e -> {
+                try {
+                    ipAddress = InetAddress.getByName(ipField.getText());
+                    port = Integer.parseInt(portField.getText());
+                    dispose();
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(IPAndPortDialog.this, "Invalid port number", "Error", JOptionPane.ERROR_MESSAGE);
+                } catch (UnknownHostException ex) {
+                    JOptionPane.showMessageDialog(IPAndPortDialog.this, "Invalid IP address", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            });
+
+            cancelButton.addActionListener(e -> dispose());
+
+            JPanel contentPane = new JPanel();
+            contentPane.setLayout(new BoxLayout(contentPane, BoxLayout.Y_AXIS));
+
+            JPanel clientIDPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+            JLabel clientIDLabel = new JLabel("ClientID :");
+            clientIDLabel.setForeground(BACKGROUND);
+            clientIDPanel.add(clientIDLabel);
+            clientIDPanel.add(clientIDPane);
+            clientIDPanel.setBackground(OPTION_PANEL_BACKGROUND);
+
+            JPanel ipPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+            JLabel ipLabel = new JLabel("IP Address:");
+            ipLabel.setForeground(BACKGROUND);
+            ipPanel.add(ipLabel);
+            ipPanel.add(ipField);
+            ipPanel.setBackground(OPTION_PANEL_BACKGROUND);
+
+            JPanel portPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+            JLabel portLabel = new JLabel("Port:");
+            portLabel.setForeground(BACKGROUND);
+            portPanel.add(portLabel);
+            portPanel.add(portField);
+            portPanel.setBackground(OPTION_PANEL_BACKGROUND);
+
+            JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+            buttonPanel.add(okButton);
+            buttonPanel.add(cancelButton);
+            buttonPanel.setBackground(OPTION_PANEL_BACKGROUND);
+
+            contentPane.add(clientIDPanel);
+            contentPane.add(Box.createRigidArea(new Dimension(-1, 5)));
+            contentPane.add(ipPanel);
+            contentPane.add(portPanel);
+            contentPane.add(buttonPanel);
+
+            contentPane.setBackground(OPTION_PANEL_BACKGROUND);
+
+            setContentPane(contentPane);
+            setLocationRelativeTo(parent);
+        }
+
+        public InetAddress getIpAddress() {
+            return ipAddress;
+        }
+
+        public int getPort() {
+            return port;
+        }
     }
 }

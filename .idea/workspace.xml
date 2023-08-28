@@ -1,21 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="412dbc24-db8c-4dbf-8797-c3a3b012b83b" name="Changes" comment="added all gameplay loops, with improvements to networking protocol">
+    <list default="true" id="412dbc24-db8c-4dbf-8797-c3a3b012b83b" name="Changes" comment="added GUI for server, bug fixes">
       <change afterPath="$PROJECT_DIR$/client.sh" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/server.sh" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/server/ServerGUI.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/client/configIcon.png" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/client/AiAgent.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/client/AiAgent.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/client/Board.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/client/Board.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/client/Client.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/client/Client.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/client/ClientGUI.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/client/ClientGUI.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/client/ClientMain.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/client/ClientMain.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/client/GUI.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/client/ClientGUI.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/client/GameLoop.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/client/NewGameLoop.java" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/src/server/Server.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/server/Server.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/server/ServerClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/server/ServerClient.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/server/ServerClientHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/server/ServerClientHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/server/ServerGUI.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/server/ServerGUI.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/server/ServerMain.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/server/ServerMain.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -73,7 +70,7 @@
       <recent name="" />
     </key>
   </component>
-  <component name="RunManager">
+  <component name="RunManager" selected="Application.ServerMain">
     <configuration name="ClientMain" type="Application" factoryName="Application" singleton="false">
       <option name="MAIN_CLASS_NAME" value="client.ClientMain" />
       <module name="metaNC" />
@@ -117,7 +114,7 @@
       <workItem from="1690989355004" duration="498000" />
       <workItem from="1691338966739" duration="3323000" />
       <workItem from="1691421480343" duration="861000" />
-      <workItem from="1692710582633" duration="84051000" />
+      <workItem from="1692710582633" duration="99305000" />
     </task>
     <task id="LOCAL-00001" summary="added tracking for won boards, disallows moves to won boards, win condition is based on global board">
       <created>1691083445422</created>
@@ -210,7 +207,14 @@
       <option name="project" value="LOCAL" />
       <updated>1693052269897</updated>
     </task>
-    <option name="localTasksCounter" value="14" />
+    <task id="LOCAL-00014" summary="added GUI for server, bug fixes">
+      <created>1693157029826</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1693157029826</updated>
+    </task>
+    <option name="localTasksCounter" value="15" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -276,7 +280,8 @@
     <MESSAGE value="added basic client, and data reading and writing between server and client" />
     <MESSAGE value="added single player networked gameplay loop with centralised board, board serialisation and basic GUI elements for networking control" />
     <MESSAGE value="added all gameplay loops, with improvements to networking protocol" />
-    <option name="LAST_COMMIT_MESSAGE" value="added all gameplay loops, with improvements to networking protocol" />
+    <MESSAGE value="added GUI for server, bug fixes" />
+    <option name="LAST_COMMIT_MESSAGE" value="added GUI for server, bug fixes" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

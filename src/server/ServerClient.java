@@ -15,7 +15,7 @@ public class ServerClient {
         this.serverClientHandlerThread = serverClientHandlerThread;
         this.clientID = this.hashCode();
 
-        ServerGUI.println("Accepted serverClient " + clientID);
+        Server.println("Accepted serverClient " + clientID);
 
         new Thread(new monitor(this)).start();
     }
@@ -32,8 +32,8 @@ public class ServerClient {
         return serverClientHandler;
     }
 
-    public Socket getServerClientSocket() {
-        return serverClientSocket;
+    public Thread getServerClientHandlerThread() {
+        return serverClientHandlerThread;
     }
 
     private class monitor implements Runnable {
@@ -45,13 +45,13 @@ public class ServerClient {
             try {
                 serverClientHandlerThread.join();
             } catch (InterruptedException e) {
-                ServerGUI.println("Error waiting for serverClientHandlerThread to stop");
+                Server.println("Error waiting for serverClientHandlerThread to stop");
             } finally {
                 if (serverClientSocket != null) {
                     try {
                         serverClientSocket.close();
                     } catch (IOException e) {
-                        ServerGUI.println("Error closing serverClientSocket : " + e);
+                        Server.println("Error closing serverClientSocket : " + e);
                     }
                 }
                 Server.serverClientDisconnected(serverClient);

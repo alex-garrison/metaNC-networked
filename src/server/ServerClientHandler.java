@@ -20,7 +20,7 @@ public class ServerClientHandler implements Runnable {
         try {
             serverClientSocket.setSoTimeout(TIMEOUT_MILLIS);
         } catch (IOException e) {
-            ServerGUI.println("Error setting timeout");
+            Server.println("Error setting timeout");
         }
 
         keepRunning = true;
@@ -42,7 +42,7 @@ public class ServerClientHandler implements Runnable {
 
         while (keepRunning) {
             if (!reader.keepRunning) {
-                ServerGUI.println("Reader has stopped");
+                Server.println("Reader has stopped");
                 keepRunning = false; continue;
             }
             try {
@@ -56,7 +56,7 @@ public class ServerClientHandler implements Runnable {
         try {
             readerThread.join();
         } catch (InterruptedException e) {
-            ServerGUI.println("Error waiting for readerThread to stop");
+            Server.println("Error waiting for readerThread to stop");
         }
 
         writer.close();
@@ -131,7 +131,7 @@ public class ServerClientHandler implements Runnable {
                     try {
                         reader = new BufferedReader(new InputStreamReader(serverClientSocket.getInputStream()));
                     } catch (IOException e) {
-                        ServerGUI.println("Error initialising reader : " + e); continue;
+                        Server.println("Error initialising reader : " + e); continue;
                     }
                 }
 
@@ -154,7 +154,7 @@ public class ServerClientHandler implements Runnable {
                                     try {
                                         Server.server.setGameMode(args[1]);
                                     } catch (NumberFormatException e) {
-                                        ServerGUI.println("Error with SETMODE command");
+                                        Server.println("Error with SETMODE command");
                                     }
                                     break;
                                 case "TURN":
@@ -166,7 +166,7 @@ public class ServerClientHandler implements Runnable {
                                         }
                                         Server.turn(location, clientID);
                                     } catch (NumberFormatException e) {
-                                        ServerGUI.println("Error with TURN command");
+                                        Server.println("Error with TURN command");
                                     }
                                     break;
                                 case "DISCONNECT":
@@ -176,17 +176,17 @@ public class ServerClientHandler implements Runnable {
                                     Server.newGame(clientID);
                                     break;
                                 case default:
-                                    ServerGUI.println("Client sent : " + receivedData);
+                                    Server.println("Client sent : " + receivedData);
                                 }
                         }
                     }  catch (SocketTimeoutException e) {} catch (IOException e) {
-                        ServerGUI.println("Error reading data : " + e);
+                        Server.println("Error reading data : " + e);
                         keepRunning = false;
                     } catch (InterruptedException e) {
                         throw new RuntimeException(e);
                     }
                 } else {
-                    ServerGUI.println("Sockets closed");
+                    Server.println("Sockets closed");
                     keepRunning = false;
                 }
             }
@@ -195,7 +195,7 @@ public class ServerClientHandler implements Runnable {
                 try {
                     reader.close();
                 } catch (IOException e) {
-                    ServerGUI.println("Error closing reader" + e);
+                    Server.println("Error closing reader" + e);
                 }
             }
 
@@ -214,7 +214,7 @@ public class ServerClientHandler implements Runnable {
             try {
                 writer = new BufferedWriter(new OutputStreamWriter(serverClientSocket.getOutputStream()));
             } catch (IOException e) {
-                ServerGUI.println("Error initialising writer : " + e);
+                Server.println("Error initialising writer : " + e);
             }
         }
 
@@ -232,7 +232,7 @@ public class ServerClientHandler implements Runnable {
                     if (errorCount >= 5) {
                         close();
                     } else {
-                        ServerGUI.println("Error sending message : " + e);
+                        Server.println("Error sending message : " + e);
                         errorCount++;
                     }
                 }
@@ -244,7 +244,7 @@ public class ServerClientHandler implements Runnable {
                 try {
                     writer.close();
                 } catch (IOException e) {
-                    ServerGUI.println("Error closing writer" + e);
+                    Server.println("Error closing writer" + e);
                 }
             }
         }

@@ -20,7 +20,9 @@ public class ServerGUI extends JFrame {
     private static JPanel serverOutputPanel;
     private static JTextArea serverOutput;
     private static JPanel optionPanel;
-    private static JButton startServer;
+    private static JButton startServerButton;
+    private static JButton stopServerButton;
+    private static JButton serverButton;
     private static JLabel networkLabel;
 
     private ServerGUI() {
@@ -40,16 +42,21 @@ public class ServerGUI extends JFrame {
         optionPanel.setLayout(new BoxLayout(optionPanel, BoxLayout.X_AXIS));
         optionPanel.setBackground(BACKGROUND);
 
-        startServer = new JButton("Start server");
-        startServer.setFont(new Font("Arial", Font.PLAIN, 20));
-        startServer.addActionListener(new StartServerListener());
-        startServer.setAlignmentX(Component.LEFT_ALIGNMENT);
+        startServerButton = new JButton("Start");
+        startServerButton.addActionListener(new StartServerListener());
+
+        stopServerButton = new JButton("Stop");
+        stopServerButton.addActionListener(new StopServerListener());
+
+        serverButton = new JButton();
+        serverButton.setFont(new Font("Arial", Font.PLAIN, 20));
+        setServerButtonFunction(true);
 
         networkLabel = new JLabel();
         networkLabel.setFont(new Font("monospaced", Font.PLAIN, 20));
         networkLabel.setForeground(TEXT);
 
-        optionPanel.add(startServer);
+        optionPanel.add(serverButton);
         optionPanel.add(Box.createHorizontalGlue());
         optionPanel.add(networkLabel);
 
@@ -79,11 +86,30 @@ public class ServerGUI extends JFrame {
         @Override
         public void actionPerformed(ActionEvent e) {
            ServerMain.startServer();
+           setServerButtonFunction(false);
         }
     }
 
-    public static void print(String text) {
-        serverOutput.append(text + "\n");
+    private class StopServerListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            ServerMain.stopServer();
+            setServerButtonFunction(true);
+        }
+    }
+
+    public void setServerButtonFunction(Boolean isStart) {
+        JButton[] serverButtons = new JButton[]{startServerButton, stopServerButton};
+        int buttonSelector = isStart ? 0 : 1;
+
+        for (ActionListener listener: serverButton.getActionListeners()) {
+            serverButton.removeActionListener(listener);
+        }
+
+        serverButton.setText(serverButtons[buttonSelector].getText());
+        serverButton.addActionListener(serverButtons[buttonSelector].getActionListeners()[0]);
+        serverButton.revalidate();
+        serverButton.repaint();
     }
 
     public static void println(String text) {
