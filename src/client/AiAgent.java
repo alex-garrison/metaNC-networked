@@ -1,19 +1,17 @@
+package client;
+
 import java.util.Random;
 public class AiAgent {
     Board board;
     Random rand;
 
-    public AiAgent(Board newBoard) {
-        board = newBoard;
+    public AiAgent(Board board) {
+        this.board = board;
         rand = new Random();
     }
 
     public int[] getMove() throws GameException {
         return getRandomMove();
-    }
-
-    public String getStarter() {
-        return new String[]{"X", "O"}[rand.nextInt(1)];
     }
 
     private int[] getRandomMove() throws GameException {

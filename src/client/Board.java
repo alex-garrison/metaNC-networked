@@ -1,12 +1,14 @@
+package client;
+
 import java.util.TreeSet;
 
 public class Board {
-    private final String[][][] board;
-    private String turn;
-    private int[] lastMove;
-    public Win[] localBoardWins;
-    private final TreeSet<Integer> wonBoards;
-    private final TreeSet<Integer> openBoards;
+    protected final String[][][] board;
+    protected String turn;
+    protected int[] lastMove;
+    protected Win[] localBoardWins;
+    protected final TreeSet<Integer> wonBoards;
+    protected final TreeSet<Integer> openBoards;
 
     public boolean isWon;
     public String winner;
@@ -26,7 +28,7 @@ public class Board {
         winner = "";
     }
 
-    public String invertPlayer(String player) {
+    public static String invertPlayer(String player) {
         if (player.equals("X")) {return "O";} else {return "X";}
     }
 
@@ -35,6 +37,9 @@ public class Board {
     }
 
     public void turn(String player, int[] location) throws GameException {
+            if (player == null) {
+                throw new GameException("No player for this clientID");
+            }
             if (player.equals(turn)) {
                 if (isValidMove(location) && !isInWonBoard(location) && isInCorrectLocalBoard(location)) {
                     board[location[0]][location[1]][location[2]] = player;
@@ -46,13 +51,26 @@ public class Board {
                 turn = invertPlayer(turn);
 
             } else if (turn.isEmpty()) {
-                throw new GameException("Starter player has not been set");
+                throw new GameException("Starter not set");
             } else {
-                throw new GameException("It is not player " + player + "'s turn");
+                throw new GameException("Not your turn");
             }
     }
 
-    private boolean isInCorrectLocalBoard(int[] location) {
+    public void resetBoard() {
+        wonBoards.clear();
+        openBoards.clear();
+
+        emptyBoard();
+        for (int i = 0; i < 9; i++) {
+            localBoardWins[i] = new Win();
+        }
+
+        isWon = false;
+        winner = "";
+    }
+
+    public boolean isInCorrectLocalBoard(int[] location) {
         int inverseResolvedLoc = lastMove[1] * 3 + lastMove[2];
         if (lastMove[0] == -1) {
             return true;
@@ -72,6 +90,7 @@ public class Board {
             return inverseResolvedLoc;
         }
     }
+
     public boolean isInWonBoard(int[] location) {
         return (wonBoards.contains(location[0]));
     }
@@ -216,7 +235,7 @@ public class Board {
             }
         }
         if (getNumberOfValidMovesAI() < 1) {
-            isWon = true; winner = "Draw"; return true;
+            isWon = true; winner = "D"; return true;
         }
         return false;
     }
@@ -229,6 +248,10 @@ public class Board {
             }
         }
         lastMove = new int[]{-1,-1,-1};
+    }
+
+    public boolean isEmptyBoard() {
+        return (lastMove[0] == -1);
     }
 
     public String whoseTurn() {
@@ -267,6 +290,7 @@ public class Board {
 
         return output.toString();
     }
+
     public String[][][] getBoard() {
         return board;
     }
