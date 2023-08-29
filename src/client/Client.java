@@ -35,9 +35,12 @@ public class Client implements Runnable {
         ClientGUI.frame.clearPlayerLabel();
 
         if (connectToServer()) {
+            ClientGUI.frame.setNetworkLabel("Connected", false);
             System.out.println("Connected to server : " + clientSocket);
             isConnected = true;
+            ClientGUI.frame.setNetworked(true);
             ClientGUI.frame.setNetworkButtonFunction(false);
+            ClientGUI.frame.setNetworkMode(true);
 
             reader = new ClientReader();
             Thread readerThread = new Thread(reader);
@@ -53,8 +56,12 @@ public class Client implements Runnable {
             writer.close();
 
             isConnected = false;
-            ClientGUI.frame.setNetworkLabel("Server disconnected" , true);
+            ClientGUI.frame.setNetworkLabel("Disconnected" , true);
+            ClientGUI.frame.clearBottomLabel();
             ClientGUI.frame.clearPlayerLabel();
+            ClientGUI.frame.setNetworkMode(false);
+            ClientGUI.frame.setNetworked(false);
+            ClientGUI.frame.setNetworkButtonFunction(true);
             clientID = 0;
 
         } else {
@@ -71,7 +78,7 @@ public class Client implements Runnable {
 
         System.out.println("Client stopped");
 
-        ClientGUI.frame.setNetworkButtonFunction(true);
+        ClientMain.restartGameloop(true);
     }
 
     public void turn(int[] location) {
@@ -120,7 +127,6 @@ public class Client implements Runnable {
     public void sendNewGame() {
         if (writer != null) {
             writer.send("NEWGAME");
-            writer.send("SETMODE:" + ClientGUI.frame.getMode());
         }
     }
 
@@ -140,8 +146,14 @@ public class Client implements Runnable {
         this.isClientTurn = true;
     }
 
-    public void boardWon() {
-        ClientGUI.frame.setBottomLabel("Board won", false);
+    public void boardWon(String winner) {
+        if (winner.equals(player)) {
+            ClientGUI.frame.setBottomLabel("You won!", false, true);
+        } else if (winner.equals(Board.invertPlayer(player))) {
+            ClientGUI.frame.setBottomLabel("You lost", true, false);
+        } else if (winner.equals("D")) {
+            ClientGUI.frame.setBottomLabel("Draw", false, false);
+        }
         boardWon = true;
     }
 
@@ -240,11 +252,15 @@ public class Client implements Runnable {
                                     setClientTurn(true);
                                     break;
                                 case "BOARDWON":
-                                    boardWon();
+                                    try {
+                                        boardWon(args[1]);
+                                    } catch (IndexOutOfBoundsException e) {
+                                        System.out.println("Error with BOARDWON command");
+                                    }
                                     break;
                                 case "ERROR":
                                     try {
-                                        ClientGUI.frame.setBottomLabel(args[1], true);
+                                        ClientGUI.frame.setBottomLabel(args[1], true, false);
                                     } catch (IndexOutOfBoundsException e) {
                                         System.out.println("Error with ERROR command");
                                     } catch (Exception e) {

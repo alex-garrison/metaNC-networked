@@ -13,12 +13,16 @@ import java.net.UnknownHostException;
 public class ClientGUI extends JFrame {
     public static ClientGUI frame;
 
+    private boolean isNetworked;
+    private boolean waitingForNewGame;
+
     private final Color BACKGROUND = new Color(224, 225, 221);
     private final Color LINE = new Color(13, 27, 42);
     private final Color OPTION_PANEL_BACKGROUND = new Color(27, 38, 59);
     private final Color BOARD_INDICATOR = new Color(65, 90, 119);
     private final Color WON_BOARD = new Color(119, 141, 169);
     private final Color ERROR = new Color(230, 57, 70);
+    private final Color WIN = new Color(106, 153, 78);
 
     private JPanel mainPanel;
     private JPanel bottomPanel;
@@ -40,6 +44,8 @@ public class ClientGUI extends JFrame {
     private int clientID;
 
     public ClientGUI() {
+        isNetworked = false;
+        waitingForNewGame = false;
         initGUI();
     }
 
@@ -94,11 +100,11 @@ public class ClientGUI extends JFrame {
         return boardPanel;
     }
 
-    private void setWinPanel(int boardIndex, NetworkedBoard networkedBoard) {
+    private void setWinPanel(int boardIndex, Board board) {
         boardPanels[boardIndex].removeAll();
         boardPanels[boardIndex].setLayout(new BorderLayout());
 
-        JLabel label = new JLabel(networkedBoard.getLocalBoardWins()[boardIndex].getWinner());
+        JLabel label = new JLabel(board.getLocalBoardWins()[boardIndex].getWinner());
         label.setHorizontalAlignment(SwingConstants.CENTER);
         label.setVerticalAlignment(SwingConstants.CENTER);
         label.setFont(new Font("monospaced", Font.PLAIN, 80));
@@ -156,7 +162,7 @@ public class ClientGUI extends JFrame {
         disconnectButton.addActionListener(new DisconnectClickListener());
         disconnectButton.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        ImageIcon configIcon = new ImageIcon("/Users/alex/Programming/NEA/Actual/metaNC-networked/src/client/configIcon.png");
+        ImageIcon configIcon = new ImageIcon("/Users/alex/Programming/NEA/Actual/metaNC-networked/src/client/icons/configIcon.png");
         configIcon = new ImageIcon(configIcon.getImage().getScaledInstance(20,20, java.awt.Image.SCALE_SMOOTH));
         networkConfigButton = new JButton(configIcon);
         networkConfigButton.addActionListener(new NetworkConfigListener());
@@ -201,8 +207,15 @@ public class ClientGUI extends JFrame {
         @Override
         public void actionPerformed(ActionEvent e) {
             currentMove = new int[]{boardIndex, row, col};
-            if (ClientMain.client != null) {
-                ClientMain.client.turn(currentMove);
+
+            if (isNetworked) {
+                if (ClientMain.client != null) {
+                    ClientMain.client.turn(currentMove);
+                }
+            } else {
+                synchronized (cells) {
+                    cells.notify();
+                }
             }
         }
     }
@@ -210,8 +223,20 @@ public class ClientGUI extends JFrame {
     private class NewGameClickListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
-            if (ClientMain.client != null) {
-                ClientMain.client.sendNewGame();
+            if (isNetworked) {
+                if (ClientMain.client != null) {
+                    if (ClientMain.client.isConnected() && getMode().equals("PvP - online")) {
+                        ClientMain.client.sendNewGame();
+                    }
+                }
+            } else {
+                if (waitingForNewGame) {
+                    synchronized (newGameButton) {
+                        newGameButton.notify();
+                    }
+                } else {
+                    ClientMain.restartGameloop(false);
+                }
             }
         }
     }
@@ -257,11 +282,42 @@ public class ClientGUI extends JFrame {
         }
     }
 
-    public void updateBoard(NetworkedBoard networkedBoard) {
+    public void waitForNewGame() throws InterruptedException {
+        if (!isNetworked) {
+            waitingForNewGame = true;
+            synchronized(newGameButton) {
+                newGameButton.wait();
+            }
+            waitingForNewGame = false;
+        }
+    }
+
+    public void waitForModeSelect() throws InterruptedException {
+        if (!isNetworked) {
+            while ((!(getMode().equals("PvP") || getMode().equals("PvAI") || getMode().equals("AIvAI"))) && !Thread.currentThread().isInterrupted()) {
+
+                Thread.sleep(100);
+
+            }
+        }
+    }
+
+    public int[] waitForMove() throws InterruptedException {
+        if (!isNetworked) {
+            synchronized(cells) {
+                cells.wait();
+            }
+            return currentMove;
+        } else {
+            return null;
+        }
+    }
+
+    public void updateBoard(Board board) {
         try {
             SwingUtilities.invokeAndWait(() -> {
-                int[] lastMove = networkedBoard.getLastMove();
-                String[][][] boardArr = networkedBoard.getBoard();
+                int[] lastMove = board.getLastMove();
+                String[][][] boardArr = board.getBoard();
                 for (int boardIndex = 0; boardIndex < boardArr.length; boardIndex++) {
                     for (int row = 0; row < boardArr[boardIndex].length; row++) {
                         for (int col = 0; col < boardArr[boardIndex][row].length; col++) {
@@ -280,16 +336,39 @@ public class ClientGUI extends JFrame {
         }
     }
 
-    public void setBoardColours(NetworkedBoard networkedBoard, String clientPlayer) {
+    public void setBoardColours(Board board, String clientPlayer) {
         try {
             SwingUtilities.invokeAndWait(() -> {
                 Color col;
                 for (int i = 0; i < boardPanels.length; i++) {
-                    if (networkedBoard.getCorrectLocalBoard() == i && !networkedBoard.isWon && networkedBoard.whoseTurn().equals(clientPlayer)) {
+                    if (board.getCorrectLocalBoard() == i && !board.isWon && board.whoseTurn().equals(clientPlayer)) {
                         col = BOARD_INDICATOR;
-                    } else if (networkedBoard.isWonBoard(i)) {
+                    } else if (board.isWonBoard(i)) {
                         if (boardPanels[i].getComponent(0).getFont().getSize() != 80) {
-                            setWinPanel(i, networkedBoard);
+                            setWinPanel(i, board);
+                        }
+                        col = WON_BOARD;
+                    } else {
+                        col = BACKGROUND;
+                    }
+                    boardPanels[i].setBackground(col);
+                }
+            });
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void setBoardColours(Board board) {
+        try {
+            SwingUtilities.invokeAndWait(() -> {
+                Color col;
+                for (int i = 0; i < boardPanels.length; i++) {
+                    if (board.getCorrectLocalBoard() == i && !board.isWon) {
+                        col = BOARD_INDICATOR;
+                    } else if (board.isWonBoard(i)) {
+                        if (boardPanels[i].getComponent(0).getFont().getSize() != 80) {
+                            setWinPanel(i, board);
                         }
                         col = WON_BOARD;
                     } else {
@@ -325,9 +404,10 @@ public class ClientGUI extends JFrame {
         }
     }
 
-    public void setBottomLabel(String text, boolean error) {
+    public void setBottomLabel(String text, boolean error, boolean win) {
         Color color = BACKGROUND;
         if (error) color = ERROR;
+        else if (win) color = WIN;
         bottomLabel.setForeground(color);
         bottomLabel.setText(text);
     }
@@ -350,21 +430,22 @@ public class ClientGUI extends JFrame {
         playerLabel.setText(player);
     }
 
+    public void setNetworked(boolean networked) {
+        isNetworked = networked;
+    }
+
     public void resetBoardPanels() {
-        try {
-            SwingUtilities.invokeAndWait(() -> {
-                mainPanel.removeAll();
-                for (int boardIndex = 0; boardIndex < 9; boardIndex++) {
-                    JPanel boardPanel = createBoardPanel(boardIndex);
-                    boardPanels[boardIndex] = boardPanel;
-                    mainPanel.add(boardPanel);
-                }
-                mainPanel.revalidate();
-                mainPanel.repaint();
-            });
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        SwingUtilities.invokeLater(() -> {
+            mainPanel.removeAll();
+            for (int boardIndex = 0; boardIndex < 9; boardIndex++) {
+                JPanel boardPanel = createBoardPanel(boardIndex);
+                boardPanels[boardIndex] = boardPanel;
+                mainPanel.add(boardPanel);
+            }
+            mainPanel.revalidate();
+            mainPanel.repaint();
+        });
+
     }
 
     public void clearBottomLabel() {
@@ -384,6 +465,15 @@ public class ClientGUI extends JFrame {
 
     public String getMode() {
         return (String) selectMode.getSelectedItem();
+    }
+
+    public void setNetworkMode(boolean isConnected) {
+        if (isConnected) {
+            selectMode.setModel(new DefaultComboBoxModel<>(new String[]{"PvP - online"}));
+        } else {
+            selectMode.setModel(new DefaultComboBoxModel<>(new String[]{"Set mode", "-", "PvP", "PvAI", "AIvAI"}));
+        }
+
     }
 
     public String getPlayerLabel() {

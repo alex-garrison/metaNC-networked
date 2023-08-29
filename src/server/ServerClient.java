@@ -32,8 +32,8 @@ public class ServerClient {
         return serverClientHandler;
     }
 
-    public Thread getServerClientHandlerThread() {
-        return serverClientHandlerThread;
+    public String toString() {
+        return "cID:" + clientID;
     }
 
     private class monitor implements Runnable {

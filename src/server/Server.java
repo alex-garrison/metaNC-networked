@@ -1,6 +1,5 @@
 package server;
 
-import client.AiAgent;
 import client.NetworkedBoard;
 import client.GameException;
 
@@ -12,7 +11,6 @@ import java.util.ConcurrentModificationException;
 public class Server implements Runnable {
     private static final int PORT = 8000;
     private final int TIMEOUT_MILLIS = 2000;
-    private final static int AI_MOVE_DELAY = 80;
 
     public static Server server;
     public static int serverID;
@@ -25,12 +23,6 @@ public class Server implements Runnable {
     private static boolean serverRunning;
     private static boolean gameRunning;
     private static boolean isNewGame;
-    private static String gameMode;
-    private static ServerClient currentClient;
-
-    boolean isPVP = false;
-    boolean isPVAI = false;
-    boolean isAIVAI = false;
 
     public Server() {
         serverClients = new ArrayList<>();
@@ -57,11 +49,9 @@ public class Server implements Runnable {
 
         if (!isHeadless) setNetworkLabel();
 
+        if (awaitServerClients()) println("Got serverClients : " + serverClients);
 
-        if (awaitServerClients()) println("Got serverClients");
-
-        awaitGamemode();
-        awaitNewGame(true);
+        awaitNewGame();
 
         serverGameLoop();
 
@@ -85,18 +75,11 @@ public class Server implements Runnable {
         if (serverRunning && gameRunning) {
             try {
                 serverNetworkedBoard.turn(location, clientID);
-                if (server.isPVP) {
-                    broadcast("BOARD:"+ serverNetworkedBoard.serialiseBoard());
-                } else if (server.isPVAI || server.isAIVAI) {
-                    send(currentClient, "BOARD:"+ serverNetworkedBoard.serialiseBoard());
-                }
+
+                broadcast("BOARD:"+ serverNetworkedBoard.serialiseBoard());
 
                 if (!serverNetworkedBoard.isWin()) {
-                    if (((server.isPVP) || ((server.isPVAI && !isAiClientID(serverNetworkedBoard.getCurrentClientID()))))) {
-                        send(getServerClientFromClientID(serverNetworkedBoard.getCurrentClientID()), "AWAITTURN");
-                    } else if (server.isPVAI || server.isAIVAI) {
-                        aiTurn(serverNetworkedBoard.getCurrentClientID());
-                    }
+                    send(getServerClientFromClientID(serverNetworkedBoard.getCurrentClientID()), "AWAITTURN");
                 }
             } catch (GameException e) {
                 ServerClient serverClient = getServerClientFromClientID(clientID);
@@ -109,20 +92,6 @@ public class Server implements Runnable {
                 if (e.getMessage().equals("Move not valid")) {
                     send(serverClient, "AWAITTURN");
                 }
-            }
-        }
-    }
-
-    public static void aiTurn(int clientID) {
-        if (isAiClientID(clientID) && serverRunning && gameRunning) {
-            AiAgent ai = new AiAgent(serverNetworkedBoard);
-            try {
-                Thread.sleep(AI_MOVE_DELAY);
-                turn(ai.getMove(), serverNetworkedBoard.getCurrentClientID());
-            } catch (GameException e) {
-                println("Error with AI turn : " + e);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
             }
         }
     }
@@ -173,12 +142,6 @@ public class Server implements Runnable {
         }
     }
 
-    public void setGameMode(String gameMode) {
-        if (gameMode.equals("PvP") || gameMode.equals("PvAI") || gameMode.equals("AIvAI")) {
-            Server.gameMode = gameMode;
-        }
-    }
-
     public static void serverClientDisconnected(ServerClient serverClient) {
         serverClients.remove(serverClient);
         println("serverClient " + serverClient.getClientID() + " disconnected");
@@ -210,12 +173,11 @@ public class Server implements Runnable {
     }
 
     public static void newGame(int clientID) {
-        currentClient = getServerClientFromClientID(clientID);
         isNewGame = true;
     }
 
-    private void awaitNewGame(boolean start) {
-        isNewGame = start;
+    private void awaitNewGame() {
+        isNewGame = false;
 
         while (serverRunning) {
             if (!isNewGame) {
@@ -231,45 +193,11 @@ public class Server implements Runnable {
         isNewGame = false;
     }
 
-    private void awaitGamemode() {
-        gameMode = null;
-
-        while (serverRunning) {
-            if ((gameMode == null) || (gameMode.isEmpty())) {
-                try {
-                    Thread.sleep(100);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-
-            } else {
-                break;
-            }
-        }
-    }
-
     private void serverGameLoop() {
         serverLoop: while (serverRunning) {
-            switch (gameMode) {
-                case "PvP" -> {
-                    isPVP = true;
-                    isPVAI = false;
-                    isAIVAI = false;
-                }
-                case "PvAI" -> {
-                    isPVAI = true;
-                    isPVP = false;
-                    isAIVAI = false;
-                }
-                case "AIvAI" -> {
-                    isAIVAI = true;
-                    isPVAI = false;
-                    isPVP = false;
-                }
-            }
-
             gameRunning = false;
 
+            println("Starting new game");
             boolean clientsAssigned = setupClients();
 
             if (clientsAssigned) {
@@ -280,25 +208,13 @@ public class Server implements Runnable {
 
                 gameRunning = true;
 
-                if (isPVP || isPVAI) {
-                    if (!isAiClientID(serverNetworkedBoard.getCurrentClientID())) {
-                        send(getServerClientFromClientID(serverNetworkedBoard.getCurrentClientID()), "AWAITTURN");
-                    } else if (isPVAI) {
-                        aiTurn(serverNetworkedBoard.getCurrentClientID());
-                    }
-                } else if (isAIVAI) {
-                    aiTurn(serverNetworkedBoard.getCurrentClientID());
-                }
-
+                send(getServerClientFromClientID(serverNetworkedBoard.getCurrentClientID()), "AWAITTURN");
 
                 while (gameRunning && serverRunning) {
                     if (serverNetworkedBoard.isWon) {
-                        if (isPVP) {
-                            broadcast("BOARDWON");
-                        } else if (isPVAI || isAIVAI) {
-                            send(currentClient, "BOARDWON");
-                        }
-                        awaitNewGame(false);
+                        broadcast("BOARDWON:" + serverNetworkedBoard.winner);
+
+                        awaitNewGame();
                         broadcast("NEWGAME");
                         continue serverLoop;
                     } else if (isNewGame) {
@@ -320,53 +236,25 @@ public class Server implements Runnable {
     public boolean setupClients() {
         boolean clientsAssigned = false;
 
-        println("Mode is : " + gameMode);
-
-        if (isPVP) {
-            try {
-                serverNetworkedBoard.clearPlayers();
-                for (ServerClient serverClient : serverClients) {
-                    try {
-                        String player = serverNetworkedBoard.addPlayer(serverClient.getClientID());
-                        println(serverClient.getClientID() + " assigned player : " + player);
-                        send(serverClient, "ASSIGNPLAYER:" + player);
-                        clientsAssigned = true;
-                    } catch (GameException e) {
-                        println("Error assigning player : " + e.getMessage());
-                        clientsAssigned = false;
-                        break;
-                    }
+        try {
+            serverNetworkedBoard.clearPlayers();
+            for (ServerClient serverClient : serverClients) {
+                try {
+                    String player = serverNetworkedBoard.addPlayer(serverClient.getClientID());
+                    println(serverClient.getClientID() + " assigned player : " + player);
+                    send(serverClient, "ASSIGNPLAYER:" + player);
+                    clientsAssigned = true;
+                } catch (GameException e) {
+                    println("Error assigning player : " + e.getMessage());
+                    clientsAssigned = false;
+                    break;
                 }
-            } catch (ConcurrentModificationException e) {
-                println("Error assigning players");
-                clientsAssigned = false;
             }
-        } else if (isPVAI) {
-            try {
-                serverNetworkedBoard.clearPlayers();
-                String player = serverNetworkedBoard.addPlayer(currentClient.getClientID());
-                println(currentClient.getClientID() + " assigned player : " + player);
-                send(currentClient, "ASSIGNPLAYER:" + player);
-                String aiPlayer = serverNetworkedBoard.addPlayer();
-                println("AI assigned player : " + aiPlayer);
-                clientsAssigned = true;
-            } catch (GameException e) {
-                println("Error assigning player : " + e.getMessage());
-                clientsAssigned = false;
-            }
-        } else if (isAIVAI) {
-            try {
-                serverNetworkedBoard.clearPlayers();
-                for (int i = 0; i < 2; i++) {
-                    String aiPlayer = serverNetworkedBoard.addPlayer(i);
-                    println("AI " + i + " assigned player : " + aiPlayer);
-                }
-                clientsAssigned = true;
-            } catch (GameException e) {
-                println("Error assigning player : " + e.getMessage());
-                clientsAssigned = false;
-            }
+        } catch (ConcurrentModificationException e) {
+            println("Error assigning players");
+            clientsAssigned = false;
         }
+
 
         return clientsAssigned;
     }
@@ -378,10 +266,6 @@ public class Server implements Runnable {
             }
         }
         return null;
-    }
-
-    public static boolean isAiClientID(int clientID) {
-        return (clientID >= 0 && clientID < 10);
     }
 
     public static void stopRunning() {

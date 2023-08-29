@@ -85,15 +85,15 @@ public class ServerGUI extends JFrame {
     private class StartServerListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
-           ServerMain.startServer();
-           setServerButtonFunction(false);
+            ServerMain.serverMain.startServer();
+            setServerButtonFunction(false);
         }
     }
 
     private class StopServerListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
-            ServerMain.stopServer();
+            ServerMain.serverMain.stopServer();
             setServerButtonFunction(true);
         }
     }
@@ -113,7 +113,11 @@ public class ServerGUI extends JFrame {
     }
 
     public static void println(String text) {
-        serverOutput.append(text + "\n");
+        if (!SwingUtilities.isEventDispatchThread()) {
+            try {
+                SwingUtilities.invokeAndWait(() -> serverOutput.append(text + "\n"));
+            } catch (InterruptedException | InvocationTargetException e) {}
+        }
     }
 
     public static void clear() {

@@ -154,13 +154,6 @@ public class ServerClientHandler implements Runnable {
                         } else if (!receivedData.isEmpty()) {
                             String[] args = receivedData.split(":");
                             switch (args[0]) {
-                                case "SETMODE":
-                                    try {
-                                        Server.server.setGameMode(args[1]);
-                                    } catch (NumberFormatException e) {
-                                        println("Error with SETMODE command");
-                                    }
-                                    break;
                                 case "TURN":
                                     try {
                                         String[] locationString = args[1].split("");
