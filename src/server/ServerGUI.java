@@ -98,7 +98,7 @@ public class ServerGUI extends JFrame {
         }
     }
 
-    public void setServerButtonFunction(Boolean isStart) {
+    public static void setServerButtonFunction(Boolean isStart) {
         JButton[] serverButtons = new JButton[]{startServerButton, stopServerButton};
         int buttonSelector = isStart ? 0 : 1;
 

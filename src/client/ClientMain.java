@@ -36,22 +36,6 @@ public class ClientMain {
         return port;
     }
 
-    private static void startConnectionMonitor() {
-        Thread connectionMonitorThread = new Thread(() -> {
-            while (true) {
-                if (client != null) {
-                    System.out.println("Client connected : " + client.isConnected());
-                }
-                try {
-                    Thread.sleep(100);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        });
-        connectionMonitorThread.start();
-    }
-
     public static void startClient() {
         if (hostSet) {
             client = new Client(host, port);

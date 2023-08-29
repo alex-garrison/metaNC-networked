@@ -2,11 +2,11 @@ package client;
 
 import java.util.Random;
 public class AiAgent {
-    Board board;
+    NetworkedBoard networkedBoard;
     Random rand;
 
-    public AiAgent(Board newBoard) {
-        board = newBoard;
+    public AiAgent(NetworkedBoard newNetworkedBoard) {
+        networkedBoard = newNetworkedBoard;
         rand = new Random();
     }
 
@@ -15,7 +15,7 @@ public class AiAgent {
     }
 
     private int[] getRandomMove() throws GameException {
-        int[][] validMoves = board.getValidMovesAI();
+        int[][] validMoves = networkedBoard.getValidMovesAI();
         if (validMoves.length < 1) {
             throw new GameException("No more valid moves. Draw.");
         }

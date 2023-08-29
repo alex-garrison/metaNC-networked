@@ -94,11 +94,11 @@ public class ClientGUI extends JFrame {
         return boardPanel;
     }
 
-    private void setWinPanel(int boardIndex, Board board) {
+    private void setWinPanel(int boardIndex, NetworkedBoard networkedBoard) {
         boardPanels[boardIndex].removeAll();
         boardPanels[boardIndex].setLayout(new BorderLayout());
 
-        JLabel label = new JLabel(board.getLocalBoardWins()[boardIndex].getWinner());
+        JLabel label = new JLabel(networkedBoard.getLocalBoardWins()[boardIndex].getWinner());
         label.setHorizontalAlignment(SwingConstants.CENTER);
         label.setVerticalAlignment(SwingConstants.CENTER);
         label.setFont(new Font("monospaced", Font.PLAIN, 80));
@@ -257,11 +257,11 @@ public class ClientGUI extends JFrame {
         }
     }
 
-    public void updateBoard(Board board) {
+    public void updateBoard(NetworkedBoard networkedBoard) {
         try {
             SwingUtilities.invokeAndWait(() -> {
-                int[] lastMove = board.getLastMove();
-                String[][][] boardArr = board.getBoard();
+                int[] lastMove = networkedBoard.getLastMove();
+                String[][][] boardArr = networkedBoard.getBoard();
                 for (int boardIndex = 0; boardIndex < boardArr.length; boardIndex++) {
                     for (int row = 0; row < boardArr[boardIndex].length; row++) {
                         for (int col = 0; col < boardArr[boardIndex][row].length; col++) {
@@ -280,16 +280,16 @@ public class ClientGUI extends JFrame {
         }
     }
 
-    public void setBoardColours(Board board, String clientPlayer) {
+    public void setBoardColours(NetworkedBoard networkedBoard, String clientPlayer) {
         try {
             SwingUtilities.invokeAndWait(() -> {
                 Color col;
                 for (int i = 0; i < boardPanels.length; i++) {
-                    if (board.getCorrectLocalBoard() == i && !board.isWon && board.whoseTurn().equals(clientPlayer)) {
+                    if (networkedBoard.getCorrectLocalBoard() == i && !networkedBoard.isWon && networkedBoard.whoseTurn().equals(clientPlayer)) {
                         col = BOARD_INDICATOR;
-                    } else if (board.isWonBoard(i)) {
+                    } else if (networkedBoard.isWonBoard(i)) {
                         if (boardPanels[i].getComponent(0).getFont().getSize() != 80) {
-                            setWinPanel(i, board);
+                            setWinPanel(i, networkedBoard);
                         }
                         col = WON_BOARD;
                     } else {
@@ -404,11 +404,11 @@ public class ClientGUI extends JFrame {
         private InetAddress DEFAULT_HOST;
         private final int DEFAULT_PORT = 8000;
 
-        private JTextField ipField;
-        private JTextField portField;
-        private JTextPane clientIDPane;
-        private JButton okButton;
-        private JButton cancelButton;
+        private final JTextField ipField;
+        private final JTextField portField;
+        private final JTextPane clientIDPane;
+        private final JButton okButton;
+        private final JButton cancelButton;
 
         private InetAddress ipAddress;
         private int port;

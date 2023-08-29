@@ -4,14 +4,15 @@ import java.io.*;
 import java.net.*;
 
 public class Client implements Runnable {
-    private InetAddress host;
-    private int port;
+    private final InetAddress host;
+    private final int port;
 
     private final int TIMEOUT_MILLIS = 500;
 
     private int clientID;
     private String player;
     private boolean isClientTurn;
+    private boolean boardWon;
 
     private Socket clientSocket;
     private boolean isConnected;
@@ -24,6 +25,7 @@ public class Client implements Runnable {
 
         clientID = -1;
         isConnected = false;
+        boardWon = false;
     }
 
     public void run() {
@@ -53,6 +55,7 @@ public class Client implements Runnable {
             isConnected = false;
             ClientGUI.frame.setNetworkLabel("Server disconnected" , true);
             ClientGUI.frame.clearPlayerLabel();
+            clientID = 0;
 
         } else {
             ClientGUI.frame.setNetworkLabel("Error connecting" , true);
@@ -72,7 +75,7 @@ public class Client implements Runnable {
     }
 
     public void turn(int[] location) {
-        if (isClientTurn) {
+        if (isClientTurn && !boardWon) {
             if (location.length == 3) {
                 writer.send("TURN:" + location[0] + location[1] + location[2]);
                 isClientTurn = false;
@@ -139,6 +142,7 @@ public class Client implements Runnable {
 
     public void boardWon() {
         ClientGUI.frame.setBottomLabel("Board won", false);
+        boardWon = true;
     }
 
     public int getClientID() {
@@ -151,42 +155,24 @@ public class Client implements Runnable {
 
     private void updateBoard(String serialisedBoard) {
         try {
-            Board newBoard = new Board();
+            NetworkedBoard newNetworkedBoard = new NetworkedBoard();
             try {
-                newBoard.deserializeBoard(serialisedBoard);
+                newNetworkedBoard.deserializeBoard(serialisedBoard);
             } catch (NumberFormatException e) {
                 System.out.println(serialisedBoard);
             }
 
-            if (newBoard.isEmptyBoard()) {
+            if (newNetworkedBoard.isEmptyBoard()) {
                 ClientGUI.frame.resetBoardPanels();
                 ClientGUI.frame.clearBottomLabel();
             }
 
-            newBoard.isWin();
-            ClientGUI.frame.updateBoard(newBoard);
-            ClientGUI.frame.setBoardColours(newBoard, player);
+            newNetworkedBoard.isWin();
+            ClientGUI.frame.updateBoard(newNetworkedBoard);
+            ClientGUI.frame.setBoardColours(newNetworkedBoard, player);
             ClientGUI.frame.clearBottomLabel();
         } catch (GameException e) {
             System.out.println("Board error : " + e);
-        }
-    }
-
-    public void waitForClientID() throws RuntimeException {
-        int timeoutCount = 0;
-        while (true) {
-            if (timeoutCount >= 5) {
-                throw new RuntimeException("Waiting timed out");
-            } else if (clientID == -1) {
-                try {
-                    Thread.sleep(200);
-                    timeoutCount++;
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-            } else {
-                break;
-            }
         }
     }
 
@@ -241,6 +227,7 @@ public class Client implements Runnable {
                                     break;
                                 case "NEWGAME":
                                     ClientGUI.frame.clearPlayerLabel();
+                                    boardWon = false;
                                     break;
                                 case "ASSIGNPLAYER":
                                     try {

@@ -7,11 +7,11 @@ import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class Board {
+public class NetworkedBoard {
     private final String[][][] board;
     private String turn;
     private int[] lastMove;
-    public Win[] localBoardWins;
+    private Win[] localBoardWins;
     private final TreeSet<Integer> wonBoards;
     private final TreeSet<Integer> openBoards;
     private final HashMap<Integer, String> players;
@@ -19,7 +19,7 @@ public class Board {
     public boolean isWon;
     public String winner;
 
-    public Board() {
+    public NetworkedBoard() {
         this.board = new String[9][3][3];
         this.localBoardWins = new Win[9];
         this.wonBoards = new TreeSet<>();
@@ -153,7 +153,7 @@ public class Board {
 
             Pattern metadataPattern = Pattern.compile("<(.+)>");
             Matcher metadataMatcher = metadataPattern.matcher(serialisedBoard);
-            metadataMatcher.find();
+            if (!metadataMatcher.find()) throw new GameException("Error deserializing");
             String[] metaData = metadataMatcher.group(1).split(",");
 
             String[] lastMoveString = metaData[0].split("");
