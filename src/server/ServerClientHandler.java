@@ -5,13 +5,14 @@ import java.net.Socket;
 import java.net.SocketTimeoutException;
 
 public class ServerClientHandler implements Runnable {
-    private ServerClient serverClient;
     private final Socket serverClientSocket;
+    private Lobby lobby;
+
     private ServerClientReader reader;
     private ServerClientWriter writer;
     private boolean keepRunning;
 
-    private int clientID = -1;
+    private int clientID = 0;
 
     private final int TIMEOUT_MILLIS = 500;
 
@@ -20,7 +21,7 @@ public class ServerClientHandler implements Runnable {
         try {
             serverClientSocket.setSoTimeout(TIMEOUT_MILLIS);
         } catch (IOException e) {
-            println("Error setting timeout");
+            output("Error setting timeout");
         }
 
         keepRunning = true;
@@ -28,21 +29,15 @@ public class ServerClientHandler implements Runnable {
 
     @Override
     public void run() {
-        waitForClientID();
-
-        waitForServerClient();
-
         reader = new ServerClientReader();
         Thread readerThread = new Thread(reader);
         readerThread.start();
 
         writer = new ServerClientWriter();
-
         writer.send("CLIENTID:" + clientID);
 
         while (keepRunning) {
             if (!reader.keepRunning) {
-                println("Reader has stopped");
                 keepRunning = false; continue;
             }
             try {
@@ -56,7 +51,7 @@ public class ServerClientHandler implements Runnable {
         try {
             readerThread.join();
         } catch (InterruptedException e) {
-            println("Error waiting for readerThread to stop");
+            output("Error waiting for readerThread to stop");
         }
 
         writer.close();
@@ -81,38 +76,13 @@ public class ServerClientHandler implements Runnable {
         this.clientID = clientID;
     }
 
-    private void waitForClientID() {
-        while (true) {
-            if (clientID == -1) {
-                try {
-                    Thread.sleep(200);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-            } else {
-                break;
-            }
-        }
+    public void setLobby(Lobby lobby) {
+        this.lobby = lobby;
+        send("LOBBYID:"+lobby.lobbyID);
     }
 
-    private void println(String text) {
-        Server.println(clientID + " : " + text);
-    }
-
-    private void waitForServerClient() {
-        while (true) {
-            serverClient = Server.getServerClientFromClientID(clientID);
-
-            if (serverClient == null) {
-                try {
-                    Thread.sleep(200);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-            } else {
-                break;
-            }
-        }
+    private void output(String text) {
+        Server.print("C" + clientID + ": " + text);
     }
 
     public void stopRunning() {
@@ -135,7 +105,7 @@ public class ServerClientHandler implements Runnable {
                     try {
                         reader = new BufferedReader(new InputStreamReader(serverClientSocket.getInputStream()));
                     } catch (IOException e) {
-                        println("Error initialising reader : " + e); continue;
+                        output("Error initialising reader : " + e); keepRunning = false; continue;
                     }
                 }
 
@@ -161,29 +131,31 @@ public class ServerClientHandler implements Runnable {
                                         for (int i = 0; i < location.length; i++) {
                                             location[i] = Integer.parseInt(locationString[i]);
                                         }
-                                        Server.turn(location, clientID);
-                                    } catch (NumberFormatException e) {
-                                        println("Error with TURN command");
+                                        lobby.turn(location, clientID);
+                                    } catch (NumberFormatException | IndexOutOfBoundsException e) {
+                                        output("Error with TURN command");
                                     }
                                     break;
                                 case "DISCONNECT":
                                     stopRunning();
                                     break;
                                 case "NEWGAME":
-                                    Server.newGame(clientID);
+                                    if (lobby != null) {
+                                        lobby.newGame();
+                                    }
                                     break;
                                 case default:
-                                    println("Client sent : " + receivedData);
+                                    output("Client sent : " + receivedData);
                                 }
                         }
                     }  catch (SocketTimeoutException e) {} catch (IOException e) {
-                        println("Error reading data : " + e);
+                        output("Error reading data : " + e);
                         keepRunning = false;
                     } catch (InterruptedException e) {
                         throw new RuntimeException(e);
                     }
                 } else {
-                    println("Sockets closed");
+                    output("Sockets closed");
                     keepRunning = false;
                 }
             }
@@ -192,7 +164,7 @@ public class ServerClientHandler implements Runnable {
                 try {
                     reader.close();
                 } catch (IOException e) {
-                    println("Error closing reader" + e);
+                    output("Error closing reader" + e);
                 }
             }
 
@@ -211,7 +183,7 @@ public class ServerClientHandler implements Runnable {
             try {
                 writer = new BufferedWriter(new OutputStreamWriter(serverClientSocket.getOutputStream()));
             } catch (IOException e) {
-                println("Error initialising writer : " + e);
+                output("Error initialising writer : " + e);
             }
         }
 
@@ -219,7 +191,7 @@ public class ServerClientHandler implements Runnable {
             boolean messageSent = false;
             int errorCount = 0;
 
-            while (!messageSent) {
+            while (!messageSent && writer != null) {
                 try {
                     writer.write(message.strip());
                     writer.newLine();
@@ -229,7 +201,7 @@ public class ServerClientHandler implements Runnable {
                     if (errorCount >= 5) {
                         close();
                     } else {
-                        println("Error sending message : " + e);
+                        output("Error sending message : " + e);
                         errorCount++;
                     }
                 }
@@ -241,7 +213,7 @@ public class ServerClientHandler implements Runnable {
                 try {
                     writer.close();
                 } catch (IOException e) {
-                    println("Error closing writer" + e);
+                    output("Error closing writer" + e);
                 }
             }
         }

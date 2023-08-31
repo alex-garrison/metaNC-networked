@@ -8,14 +8,19 @@ public class ServerClient {
     private final ServerClientHandler serverClientHandler;
     private final Thread serverClientHandlerThread;
     private final int clientID;
+    private boolean isConnected;
+    private Lobby lobby;
 
     public ServerClient(Socket serverClientSocket, ServerClientHandler serverClientHandler, Thread serverClientHandlerThread) {
         this.serverClientSocket = serverClientSocket;
         this.serverClientHandler = serverClientHandler;
         this.serverClientHandlerThread = serverClientHandlerThread;
-        this.clientID = this.hashCode();
+        this.clientID = (this.hashCode() / 100000);
+        this.isConnected = true;
 
-        Server.println("Accepted serverClient " + clientID);
+        output("new client accepted");
+
+        this.serverClientHandler.setClientID(this.clientID);
 
         new Thread(new monitor(this)).start();
     }
@@ -24,16 +29,29 @@ public class ServerClient {
         serverClientHandler.stopRunning();
     }
 
+    public void output(String text) {
+        Server.print("C:" + clientID + ": " + text);
+    }
+
     public int getClientID() {
         return clientID;
+    }
+
+    public boolean isConnected() {
+        return isConnected;
     }
 
     public ServerClientHandler getServerClientHandler() {
         return serverClientHandler;
     }
 
+    public void setLobby(Lobby lobby) {
+        this.lobby = lobby;
+        serverClientHandler.setLobby(lobby);
+    }
+
     public String toString() {
-        return "cID:" + clientID;
+        return "C" + clientID;
     }
 
     private class monitor implements Runnable {
@@ -45,16 +63,24 @@ public class ServerClient {
             try {
                 serverClientHandlerThread.join();
             } catch (InterruptedException e) {
-                Server.println("Error waiting for serverClientHandlerThread to stop");
+                output("Error waiting for serverClientHandlerThread to stop");
             } finally {
                 if (serverClientSocket != null) {
                     try {
                         serverClientSocket.close();
                     } catch (IOException e) {
-                        Server.println("Error closing serverClientSocket : " + e);
+                        output("Error closing serverClientSocket : " + e);
                     }
                 }
-                Server.serverClientDisconnected(serverClient);
+
+                isConnected = false;
+
+                if (lobby != null) {
+                    lobby.serverClientDisconnected(serverClient);
+                } else {
+                    Server.serverClientDisconnected(serverClient, false);
+                }
+
             }
         }
     }

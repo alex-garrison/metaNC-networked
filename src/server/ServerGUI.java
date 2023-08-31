@@ -9,16 +9,24 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.lang.reflect.InvocationTargetException;
 import java.net.InetAddress;
+import java.util.ArrayList;
+import java.util.TreeMap;
 
 public class ServerGUI extends JFrame {
     public static ServerGUI frame;
 
-    private final Color TEXT = new Color(224, 225, 221);
+    private static final Color TEXT = new Color(224, 225, 221);
     private final Color BACKGROUND = new Color(27, 38, 59);
-    private final Color OUTPUT_BACKGROUND = new Color(141, 140, 150);
+    private static final Color OUTPUT_BACKGROUND = Color.BLACK;
+
+    private static JTabbedPane tabs;
 
     private static JPanel serverOutputPanel;
     private static JTextArea serverOutput;
+
+    private static TreeMap<Integer, JTextArea> lobbyOutputs;
+    private static TreeMap<Integer, JPanel> lobbyOutputPanels;
+
     private static JPanel optionPanel;
     private static JButton startServerButton;
     private static JButton stopServerButton;
@@ -26,12 +34,14 @@ public class ServerGUI extends JFrame {
     private static JLabel networkLabel;
 
     private ServerGUI() {
+        lobbyOutputs = new TreeMap<>();
+        lobbyOutputPanels = new TreeMap<>();
         initGUI();
     }
 
     private void initGUI() {
         setTitle("uNC - Server");
-        setMinimumSize(new Dimension(500, 500));
+        setMinimumSize(new Dimension(500, 550));
         setResizable(false);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BoxLayout(getContentPane(), BoxLayout.Y_AXIS));
@@ -50,6 +60,7 @@ public class ServerGUI extends JFrame {
 
         serverButton = new JButton();
         serverButton.setFont(new Font("Arial", Font.PLAIN, 20));
+        serverButton.setForeground(TEXT);
         setServerButtonFunction(true);
 
         networkLabel = new JLabel();
@@ -66,6 +77,7 @@ public class ServerGUI extends JFrame {
 
         serverOutput = new JTextArea();
         serverOutput.setFont(new Font("monospaced", Font.PLAIN, 15));
+        serverOutput.setForeground(TEXT);
         serverOutput.setBackground(OUTPUT_BACKGROUND);
         serverOutput.setEditable(false);
         serverOutput.setBorder(new EmptyBorder(5,5,5,5));
@@ -77,9 +89,15 @@ public class ServerGUI extends JFrame {
         scrollPane.setPreferredSize(new Dimension(450, 400));
         serverOutputPanel.add(scrollPane);
 
+        tabs = new JTabbedPane();
+        tabs.setForeground(TEXT);
+        tabs.setBackground(BACKGROUND);
+        tabs.setBorder(new EmptyBorder(10,10,10,10));
+        tabs.add("Server", serverOutputPanel);
+
         add(optionPanel);
         add(Box.createVerticalGlue());
-        add(serverOutputPanel);
+        add(tabs);
     }
 
     private class StartServerListener implements ActionListener {
@@ -98,7 +116,7 @@ public class ServerGUI extends JFrame {
         }
     }
 
-    public static void setServerButtonFunction(Boolean isStart) {
+    public void setServerButtonFunction(Boolean isStart) {
         JButton[] serverButtons = new JButton[]{startServerButton, stopServerButton};
         int buttonSelector = isStart ? 0 : 1;
 
@@ -112,7 +130,72 @@ public class ServerGUI extends JFrame {
         serverButton.repaint();
     }
 
-    public static void println(String text) {
+    public void addLobby(Lobby lobby) {
+        if (!SwingUtilities.isEventDispatchThread()) {
+            try {
+                SwingUtilities.invokeAndWait(() -> {
+                    JPanel lobbyOutputPanel = new JPanel();
+                    lobbyOutputPanel.setBorder(new EmptyBorder(0,5,0,5));
+                    lobbyOutputPanel.setBackground(BACKGROUND);
+
+                    JTextArea lobbyOutput = new JTextArea();
+                    lobbyOutput.setFont(new Font("monospaced", Font.PLAIN, 15));
+                    lobbyOutput.setBackground(OUTPUT_BACKGROUND);
+                    lobbyOutput.setForeground(TEXT);
+                    lobbyOutput.setEditable(false);
+                    lobbyOutput.setBorder(new EmptyBorder(5,5,5,5));
+                    DefaultCaret caret = (DefaultCaret) lobbyOutput.getCaret();
+                    caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
+                    JScrollPane scrollPane = new JScrollPane(lobbyOutput);
+                    scrollPane.setBorder(new LineBorder(TEXT, 5));
+                    scrollPane.setBackground(OUTPUT_BACKGROUND);
+                    scrollPane.setPreferredSize(new Dimension(450, 400));
+                    lobbyOutputPanel.add(scrollPane);
+
+                    lobbyOutputs.put(lobby.lobbyID, lobbyOutput);
+                    lobbyOutputPanels.put(lobby.lobbyID, lobbyOutputPanel);
+
+                    int index = new ArrayList<>(lobbyOutputPanels.keySet()).indexOf(lobby.lobbyID);
+
+                    tabs.insertTab("Lobby " + lobby.lobbyID, null, lobbyOutputPanel, null, index+1);
+                });
+            } catch (InterruptedException | InvocationTargetException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    public void removeLobby(Lobby lobby) {
+        if (!SwingUtilities.isEventDispatchThread()) {
+            try {
+                SwingUtilities.invokeAndWait(() -> {
+                    lobbyOutputs.remove(lobby.lobbyID);
+                    JPanel lobbyOutputPanel = lobbyOutputPanels.remove(lobby.lobbyID);
+                    tabs.remove(lobbyOutputPanel);
+                });
+            } catch (InterruptedException | InvocationTargetException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    public void printToLobby(String text, Lobby lobby) {
+        if (!SwingUtilities.isEventDispatchThread()) {
+//            try {
+                SwingUtilities.invokeLater(() -> {
+                    JTextArea lobbyOutput = lobbyOutputs.get(lobby.lobbyID);
+                    if (lobbyOutput != null) {
+                        lobbyOutput.append(text + "\n");
+                    }
+                });
+//            } catch (InterruptedException | InvocationTargetException e) {
+//                throw new RuntimeException(e);
+//            }
+        }
+    }
+
+
+    public void printToServer(String text) {
         if (!SwingUtilities.isEventDispatchThread()) {
             try {
                 SwingUtilities.invokeAndWait(() -> serverOutput.append(text + "\n"));

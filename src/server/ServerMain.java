@@ -1,14 +1,11 @@
 package server;
 
-import java.util.concurrent.locks.ReentrantLock;
-
 public class ServerMain {
     public static ServerMain serverMain;
     public static Server server;
     private static Thread serverThread;
 
     private static boolean isHeadless;
-    private final ReentrantLock lock = new ReentrantLock();
 
     private ServerMain() {}
 
@@ -39,51 +36,36 @@ public class ServerMain {
     }
 
     public void startServer() {
-        lock.lock();
-
-        try {
-            if (serverThread == null || !serverThread.isAlive()) {
-                if (!isHeadless) {
-                    ServerGUI.clear();
-                    ServerGUI.clearNetworkLabel();
-                }
-
-                server = new Server();
-                serverThread = new Thread(server);
-                serverThread.start();
+        if (serverThread == null || !serverThread.isAlive()) {
+            if (!isHeadless) {
+                ServerGUI.clear();
+                ServerGUI.clearNetworkLabel();
             }
-        } finally {
-            lock.unlock();
+
+            server = new Server();
+            serverThread = new Thread(server);
+            serverThread.start();
         }
     }
 
     public void stopServer() {
-        lock.lock();
-
-        try {
-            if (server != null && serverThread != null) {
-                Server.stopRunning();
-
-                try {
-                    do {
-                        serverThread.join(1000);
-
-                        if (serverThread.isAlive()) {
-                            serverThread.interrupt();
-                        }
-                    } while (serverThread.isAlive());
-
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
+        if (server != null && serverThread != null) {
+            Server.stopRunning();
+            try {
+                do {
+                    serverThread.join(1000);
+                    if (serverThread.isAlive()) {
+                        serverThread.interrupt();
+                    }
+                } while (serverThread.isAlive());
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
             }
-        } finally {
-            lock.unlock();
         }
     }
 
     public static void serverStopped() {
-        ServerGUI.setServerButtonFunction(true);
+        ServerGUI.frame.setServerButtonFunction(true);
     }
 
     public static boolean isHeadless() {

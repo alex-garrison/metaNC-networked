@@ -133,7 +133,7 @@ public class ClientMain {
                     if (board.winner.equals("D")) {
                         ClientGUI.frame.setBottomLabel("Draw", false, false);
                     } else {
-                        ClientGUI.frame.setBottomLabel("Player " + board.winner + " wins.", false, true);
+                        ClientGUI.frame.setBottomLabel("Player " + board.winner + " wins", false, true);
                     }
                     ClientGUI.frame.updateBoard(board);
                     ClientGUI.frame.setBoardColours(board);

@@ -1,12 +1,10 @@
 package server;
 
-import client.NetworkedBoard;
-import client.GameException;
-
 import java.io.IOException;
 import java.net.*;
 import java.util.ArrayList;
-import java.util.ConcurrentModificationException;
+import java.util.LinkedList;
+import java.util.TreeSet;
 
 public class Server implements Runnable {
     private static final int PORT = 8000;
@@ -16,20 +14,22 @@ public class Server implements Runnable {
     public static int serverID;
 
     private ServerSocket serverSocket;
-    private static NetworkedBoard serverNetworkedBoard;
     private static ArrayList<ServerClient> serverClients;
+
+    public static ArrayList<Lobby> lobbies;
+    private static int lobbyCounter = 1;
+    private static TreeSet<Integer> availableLobbyIDs;
+
+    private static clientHandler clientHandler;
 
     private static boolean isHeadless;
     private static boolean serverRunning;
-    private static boolean gameRunning;
-    private static boolean isNewGame;
 
     public Server() {
         serverClients = new ArrayList<>();
-        serverNetworkedBoard = new NetworkedBoard();
+        lobbies = new ArrayList<>();
+        availableLobbyIDs = new TreeSet<>();
         serverRunning = true;
-        gameRunning = false;
-        isNewGame = false;
         isHeadless = ServerMain.isHeadless();
 
         server = this;
@@ -38,62 +38,48 @@ public class Server implements Runnable {
 
     @Override
     public void run() {
-        println("Started server");
+        output("Started server");
 
         try {
             serverSocket = new ServerSocket(PORT);
             serverSocket.setSoTimeout(TIMEOUT_MILLIS);
         } catch (IOException e) {
-            println("Error initialising server : " + e);
+            output("Error initialising server : " + e);
         }
 
-        if (!isHeadless) setNetworkLabel();
+        if (isHeadless) {
+            try {
+                output("Socket open: " + InetAddress.getLocalHost().getHostAddress() + ":" + PORT);
+            } catch (UnknownHostException e) {
+                output("Error getting localHost : " + e);
+            }
+        } else {
+            setNetworkLabel();
+        }
 
-        if (awaitServerClients()) println("Got serverClients : " + serverClients);
-
-        awaitNewGame();
-
-        serverGameLoop();
+        clientHandler = new clientHandler();
+        Thread clientHandlerThread = new Thread(clientHandler);
+        clientHandlerThread.start();
+        try {
+            clientHandlerThread.join();
+        } catch (InterruptedException e) {
+            Server.output("Error waiting for the clientHandlerThread to stop : " + e);
+        }
 
         broadcast("DISCONNECT");
         if (serverClients.size() > 0) {
-            println("Disconnecting from clients");
+            output("Disconnecting from clients");
         }
         closeClients();
 
         try {
             serverSocket.close();
         } catch (IOException e) {
-            println("Error closing serverSocket : " + e.getMessage());
+            output("Error closing serverSocket : " + e.getMessage());
         }
 
-        println("Server stopped");
+        output("Server stopped");
         if (!isHeadless) ServerMain.serverStopped();
-    }
-
-    public static void turn(int[] location, int clientID) {
-        if (serverRunning && gameRunning) {
-            try {
-                serverNetworkedBoard.turn(location, clientID);
-
-                broadcast("BOARD:"+ serverNetworkedBoard.serialiseBoard());
-
-                if (!serverNetworkedBoard.isWin()) {
-                    send(getServerClientFromClientID(serverNetworkedBoard.getCurrentClientID()), "AWAITTURN");
-                }
-            } catch (GameException e) {
-                ServerClient serverClient = getServerClientFromClientID(clientID);
-                if (serverClient != null) {
-                    send(serverClient, "ERROR:"+e.getMessage());
-                } else {
-                    println("Error with turn : " + e.getMessage());
-                }
-
-                if (e.getMessage().equals("Move not valid")) {
-                    send(serverClient, "AWAITTURN");
-                }
-            }
-        }
     }
 
     private static void broadcast(String message) {
@@ -102,21 +88,25 @@ public class Server implements Runnable {
         }
     }
 
-    private static void send(ServerClient serverClient, String message) {
+    public static void send(ServerClient serverClient, String message) {
         if (serverClient != null) {
             try {
                 serverClient.getServerClientHandler().send(message);
             } catch(Exception e){
-                println("Error sending message : " + message + " : " + e);
+                output("Error sending message : " + message + " : " + e);
             }
         }
     }
 
-    public static void println(String text) {
+    private static void output(String text) {
+        print("S: " + text);
+    }
+
+    public static void print(String text) {
         if (isHeadless) {
             System.out.println(text);
         } else {
-            ServerGUI.println(text);
+            ServerGUI.frame.printToServer(text);
         }
     }
 
@@ -124,7 +114,7 @@ public class Server implements Runnable {
         try {
             ServerGUI.setNetworkLabel(InetAddress.getLocalHost(), PORT);
         } catch (UnknownHostException e) {
-            println("Error setting network label : " + e);
+            output("Error setting network label : " + e);
         }
     }
 
@@ -137,126 +127,38 @@ public class Server implements Runnable {
             try {
                 Thread.sleep(100);
             } catch (InterruptedException e) {
-                throw new RuntimeException(e);
+                Server.output("Error waiting for clients to close : " + e.getMessage());
+                return;
             }
         }
     }
 
-    public static void serverClientDisconnected(ServerClient serverClient) {
+    public static void serverClientDisconnected(ServerClient serverClient, boolean stopServer) {
+        output("serverClient " + serverClient.getClientID() + " disconnected");
         serverClients.remove(serverClient);
-        println("serverClient " + serverClient.getClientID() + " disconnected");
-        serverRunning = false; gameRunning = false;
-    }
-
-    private boolean awaitServerClients() {
-        while (serverClients.size() < 2) {
-            if (!serverRunning) {
-                return false;
-            }
-
-            try {
-                Socket serverClientSocket = serverSocket.accept();
-                ServerClientHandler serverClientHandler = new ServerClientHandler(serverClientSocket);
-                Thread serverClientHandlerThread = new Thread(serverClientHandler);
-                serverClientHandlerThread.start();
-
-                ServerClient serverClient = new ServerClient(serverClientSocket, serverClientHandler, serverClientHandlerThread);
-
-                serverClientHandler.setClientID(serverClient.getClientID());
-                serverClients.add(serverClient);
-            } catch (SocketTimeoutException e) {} catch (IOException e) {
-                println("Error accepting serverClient : " + e);
-            }
-        }
-
-        return true;
-    }
-
-    public static void newGame(int clientID) {
-        isNewGame = true;
-    }
-
-    private void awaitNewGame() {
-        isNewGame = false;
-
-        while (serverRunning) {
-            if (!isNewGame) {
-                try {
-                    Thread.sleep(100);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-            } else {
-                break;
-            }
-        }
-        isNewGame = false;
-    }
-
-    private void serverGameLoop() {
-        serverLoop: while (serverRunning) {
-            gameRunning = false;
-
-            println("Starting new game");
-            boolean clientsAssigned = setupClients();
-
-            if (clientsAssigned) {
-                serverNetworkedBoard.resetBoard();
-                serverNetworkedBoard.setStarter("X");
-
-                broadcast("BOARD:"+ serverNetworkedBoard.serialiseBoard());
-
-                gameRunning = true;
-
-                send(getServerClientFromClientID(serverNetworkedBoard.getCurrentClientID()), "AWAITTURN");
-
-                while (gameRunning && serverRunning) {
-                    if (serverNetworkedBoard.isWon) {
-                        broadcast("BOARDWON:" + serverNetworkedBoard.winner);
-
-                        awaitNewGame();
-                        broadcast("NEWGAME");
-                        continue serverLoop;
-                    } else if (isNewGame) {
-                        broadcast("NEWGAME");
-                        isNewGame = false;
-                        continue serverLoop;
-                    } else {
-                        try {
-                            Thread.sleep(50);
-                        } catch (InterruptedException e) {
-                            throw new RuntimeException(e);
-                        }
-                    }
-                }
-            }
+        Server.clientHandler.removeFromWaiting(serverClient);
+        if (stopServer) {
+            serverRunning = false;
         }
     }
 
-    public boolean setupClients() {
-        boolean clientsAssigned = false;
-
-        try {
-            serverNetworkedBoard.clearPlayers();
-            for (ServerClient serverClient : serverClients) {
-                try {
-                    String player = serverNetworkedBoard.addPlayer(serverClient.getClientID());
-                    println(serverClient.getClientID() + " assigned player : " + player);
-                    send(serverClient, "ASSIGNPLAYER:" + player);
-                    clientsAssigned = true;
-                } catch (GameException e) {
-                    println("Error assigning player : " + e.getMessage());
-                    clientsAssigned = false;
-                    break;
-                }
-            }
-        } catch (ConcurrentModificationException e) {
-            println("Error assigning players");
-            clientsAssigned = false;
+    private static int getLobbyID() {
+        int lobbyID;
+        if (availableLobbyIDs.size() > 0) {
+            lobbyID =  availableLobbyIDs.pollFirst();
+        } else {
+            lobbyID = lobbyCounter;
+            lobbyCounter++;
         }
+        return lobbyID;
+    }
 
-
-        return clientsAssigned;
+    public static void removeLobby(Lobby lobby) {
+        availableLobbyIDs.add(lobby.lobbyID);
+        lobbies.remove(lobby);
+        if (!isHeadless) {
+            ServerGUI.frame.removeLobby(lobby);
+        }
     }
 
     public static ServerClient getServerClientFromClientID(int clientID) {
@@ -269,6 +171,58 @@ public class Server implements Runnable {
     }
 
     public static void stopRunning() {
-        serverRunning = false; gameRunning = false;
+        serverRunning = false;
+
+        for (Lobby lobby: lobbies) {
+            lobby.stopRunning();
+        }
+    }
+
+    class clientHandler implements Runnable {
+        private static final LinkedList<ServerClient> waitingClients = new LinkedList<>();
+        @Override
+        public void run() {
+            while (serverRunning) {
+                try {
+                    Socket serverClientSocket = serverSocket.accept();
+                    ServerClientHandler serverClientHandler = new ServerClientHandler(serverClientSocket);
+                    Thread serverClientHandlerThread = new Thread(serverClientHandler);
+
+                    ServerClient serverClient = new ServerClient(serverClientSocket, serverClientHandler, serverClientHandlerThread);
+                    serverClientHandlerThread.start();
+
+                    if (serverClient.isConnected()) {
+                        serverClients.add(serverClient);
+
+                        waitingClients.add(serverClient);
+                    }
+
+                    synchronized (waitingClients) {
+                        if (waitingClients.size() >= 2) {
+                            ServerClient player1 = waitingClients.removeFirst();
+                            ServerClient player2 = waitingClients.removeFirst();
+
+                            Lobby lobby = new Lobby(new ServerClient[]{player1, player2}, getLobbyID());
+                            player1.setLobby(lobby);
+                            player2.setLobby(lobby);
+
+                            Thread lobbyThread = new Thread(lobby);
+                            lobbyThread.start();
+
+                            lobbies.add(lobby);
+                        }
+                    }
+                } catch (SocketTimeoutException e) {} catch (IOException e) {
+                    output("Error accepting serverClient : " + e);
+                }
+            }
+        }
+
+        public void removeFromWaiting(ServerClient serverClient) {
+            if (waitingClients.contains(serverClient)) {
+                waitingClients.remove(serverClient);
+                System.out.println(waitingClients);
+            }
+        }
     }
 }

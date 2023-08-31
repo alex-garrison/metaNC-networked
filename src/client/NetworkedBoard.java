@@ -11,7 +11,6 @@ public class NetworkedBoard extends Board {
 
     public NetworkedBoard() {
         super();
-
         this.players = new HashMap<>();
 
     }
@@ -29,8 +28,13 @@ public class NetworkedBoard extends Board {
         }
     }
 
-    public String getPlayer(int clientID) {
-        return players.get(clientID);
+    public int getClientID(String player) {
+        for (Map.Entry<Integer, String> entry: players.entrySet()) {
+            if (entry.getValue().equals(player)) {
+                return entry.getKey();
+            }
+        }
+        return 0;
     }
 
     public void clearPlayers() {
@@ -149,9 +153,9 @@ public class NetworkedBoard extends Board {
                 turn = invertPlayer(turn);
 
             } else if (turn.isEmpty()) {
-                throw new GameException("Starter player has not been set");
+                throw new GameException("Starter not set");
             } else {
-                throw new GameException("It is not player " + player + "'s turn");
+                throw new GameException("Not your turn");
             }
     }
 }

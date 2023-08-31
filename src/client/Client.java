@@ -62,6 +62,7 @@ public class Client implements Runnable {
             ClientGUI.frame.setNetworkMode(false);
             ClientGUI.frame.setNetworked(false);
             ClientGUI.frame.setNetworkButtonFunction(true);
+            ClientGUI.frame.setClientID(0); ClientGUI.frame.setLobbyID(0);
             clientID = 0;
 
         } else {
@@ -126,14 +127,20 @@ public class Client implements Runnable {
 
     public void sendNewGame() {
         if (writer != null) {
+            System.out.println("Sending new game");
             writer.send("NEWGAME");
         }
     }
 
     private void setClientID(int clientID) {
         this.clientID = clientID;
-        ClientGUI.frame.setNetworkLabel(ClientMain.client.getClientID());
+        ClientGUI.frame.setClientID(clientID);
         System.out.println("Set clientID : " + clientID);
+    }
+
+    private void setLobbyID(int lobbyID) {
+        ClientGUI.frame.setLobbyID(lobbyID);
+        System.out.println("Set lobbyID : " + lobbyID);
     }
 
     public void setPlayer(String player) {
@@ -155,10 +162,6 @@ public class Client implements Runnable {
             ClientGUI.frame.setBottomLabel("Draw", false, false);
         }
         boardWon = true;
-    }
-
-    public int getClientID() {
-        return clientID;
     }
 
     public boolean isConnected() {
@@ -225,6 +228,15 @@ public class Client implements Runnable {
                                         setClientID(Integer.parseInt(args[1]));
                                     } catch (IndexOutOfBoundsException e) {
                                         System.out.println("Error with CLIENTID command");
+                                    } catch (Exception e) {
+                                        System.out.println("Error with setting clientID");
+                                    }
+                                    break;
+                                case "LOBBYID":
+                                    try {
+                                        setLobbyID(Integer.parseInt(args[1]));
+                                    } catch (IndexOutOfBoundsException e) {
+                                        System.out.println("Error with LOBBYID command");
                                     } catch (Exception e) {
                                         System.out.println("Error with setting clientID");
                                     }
