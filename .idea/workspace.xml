@@ -1,25 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="412dbc24-db8c-4dbf-8797-c3a3b012b83b" name="Changes" comment="added lobby system">
-      <change afterPath="$PROJECT_DIR$/.idea/libraries/flatlaf_3_1_1.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FlatLAF/flatlaf-3.1.1-javadoc.jar" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FlatLAF/flatlaf-3.1.1-sources.jar" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FlatLAF/flatlaf-3.1.1.jar" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/client.sh" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/server.sh" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/server/Lobby.java" afterDir="false" />
+    <list default="true" id="412dbc24-db8c-4dbf-8797-c3a3b012b83b" name="Changes" comment="added client authentication, and fetching of the server IP and auth-key from the website">
+      <change afterPath="$PROJECT_DIR$/src/client/NetworkConfigDialog.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/metaNC.iml" beforeDir="false" afterPath="$PROJECT_DIR$/metaNC.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/client/Board.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/client/Board.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/client/Client.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/client/Client.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/client/ClientGUI.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/client/ClientGUI.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/client/ClientMain.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/client/ClientMain.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/client/NetworkedBoard.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/client/NetworkedBoard.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/server/Server.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/server/Server.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/server/ServerClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/server/ServerClient.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/server/ServerClientHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/server/ServerClientHandler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/server/ServerGUI.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/server/ServerGUI.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/server/ServerMain.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/server/ServerMain.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -63,7 +55,7 @@
     "jdk.selected.JAVA_MODULE": "20",
     "last_opened_file_path": "/Users/alex/Programming/NEA/Actual/metaNC-networked",
     "nodejs_package_manager_path": "npm",
-    "project.structure.last.edited": "Libraries",
+    "project.structure.last.edited": "Project",
     "project.structure.proportion": "0.15",
     "project.structure.side.proportion": "0.2",
     "settings.editor.selected.configurable": "project.propCompiler",
@@ -86,7 +78,7 @@
   </component>
   <component name="RunManager" selected="Application.ClientMain">
     <configuration name="ClientMain" type="Application" factoryName="Application" singleton="false">
-      <option name="ALTERNATIVE_JRE_PATH" value="18" />
+      <option name="ALTERNATIVE_JRE_PATH" value="20" />
       <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
       <option name="MAIN_CLASS_NAME" value="client.ClientMain" />
       <module name="metaNC" />
@@ -95,7 +87,7 @@
       </method>
     </configuration>
     <configuration name="ServerMain" type="Application" factoryName="Application">
-      <option name="ALTERNATIVE_JRE_PATH" value="18" />
+      <option name="ALTERNATIVE_JRE_PATH" value="20" />
       <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
       <option name="MAIN_CLASS_NAME" value="server.ServerMain" />
       <module name="metaNC" />
@@ -272,7 +264,7 @@
                   <entry key="branch">
                     <value>
                       <list>
-                        <option value="network_testing" />
+                        <option value="origin/network_testing" />
                       </list>
                     </value>
                   </entry>
@@ -325,7 +317,8 @@
     <MESSAGE value="bug fixes and general improvements" />
     <MESSAGE value="integrated networked and local game loops, and bug fixes + improvements" />
     <MESSAGE value="added lobby system" />
-    <option name="LAST_COMMIT_MESSAGE" value="added lobby system" />
+    <MESSAGE value="added client authentication, and fetching of the server IP and auth-key from the website" />
+    <option name="LAST_COMMIT_MESSAGE" value="added client authentication, and fetching of the server IP and auth-key from the website" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

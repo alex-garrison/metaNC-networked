@@ -6,6 +6,7 @@ import java.net.SocketTimeoutException;
 
 public class ServerClientHandler implements Runnable {
     private final Socket serverClientSocket;
+    private ServerClient serverClient;
     private Lobby lobby;
 
     private ServerClientReader reader;
@@ -34,7 +35,6 @@ public class ServerClientHandler implements Runnable {
         readerThread.start();
 
         writer = new ServerClientWriter();
-        writer.send("CLIENTID:" + clientID);
 
         while (keepRunning) {
             if (!reader.keepRunning) {
@@ -74,6 +74,10 @@ public class ServerClientHandler implements Runnable {
 
     public void setClientID(int clientID) {
         this.clientID = clientID;
+    }
+
+    public void setServerClient(ServerClient serverClient) {
+        this.serverClient = serverClient;
     }
 
     public void setLobby(Lobby lobby) {
@@ -122,9 +126,14 @@ public class ServerClientHandler implements Runnable {
                             nullDataCounter++;
                             Thread.sleep(100);
                         } else if (!receivedData.isEmpty()) {
-                            String[] args = receivedData.split(":");
-                            switch (args[0]) {
-                                case "TURN":
+                            if (!serverClient.isAuthorised()) {
+                                if (receivedData.equals("I-LOVE-NOUGHTS-AND-CROSSES")) {
+                                    serverClient.authoriseClient();
+                                    writer.send("CLIENTID:" + clientID);
+                                }
+                            } else {
+                                String[] args = receivedData.split(":");
+                                if (args[0].equals("TURN")) {
                                     try {
                                         String[] locationString = args[1].split("");
                                         int[] location = new int[3];
@@ -135,18 +144,16 @@ public class ServerClientHandler implements Runnable {
                                     } catch (NumberFormatException | IndexOutOfBoundsException e) {
                                         output("Error with TURN command");
                                     }
-                                    break;
-                                case "DISCONNECT":
+                                } else if (args[0].equals("DISCONNECT")) {
                                     stopRunning();
-                                    break;
-                                case "NEWGAME":
+                                } else if (args[0].equals("NEWGAME")) {
                                     if (lobby != null) {
                                         lobby.newGame();
                                     }
-                                    break;
-                                case default:
+                                } else {
                                     output("Client sent : " + receivedData);
                                 }
+                            }
                         }
                     }  catch (SocketTimeoutException e) {} catch (IOException e) {
                         output("Error reading data : " + e);
@@ -193,7 +200,7 @@ public class ServerClientHandler implements Runnable {
 
             while (!messageSent && writer != null) {
                 try {
-                    writer.write(message.strip());
+                    writer.write(message);
                     writer.newLine();
                     writer.flush();
                     messageSent = true;

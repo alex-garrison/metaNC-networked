@@ -7,22 +7,21 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.lang.reflect.InvocationTargetException;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 
 public class ClientGUI extends JFrame {
     public static ClientGUI frame;
+    private static NetworkConfigDialog networkConfigDialog;
 
     private boolean isNetworked;
     private boolean waitingForNewGame;
 
-    private final Color BACKGROUND = new Color(224, 225, 221);
-    private final Color LINE = new Color(13, 27, 42);
-    private final Color OPTION_PANEL_BACKGROUND = new Color(27, 38, 59);
-    private final Color BOARD_INDICATOR = new Color(65, 90, 119);
-    private final Color WON_BOARD = new Color(119, 141, 169);
-    private final Color ERROR = new Color(230, 57, 70);
-    private final Color WIN = new Color(106, 153, 78);
+    public final Color BACKGROUND = new Color(224, 225, 221);
+    public final Color LINE = new Color(13, 27, 42);
+    public final Color OPTION_PANEL_BACKGROUND = new Color(27, 38, 59);
+    public final Color BOARD_INDICATOR = new Color(65, 90, 119);
+    public final Color WON_BOARD = new Color(119, 141, 169);
+    public final Color ERROR = new Color(230, 57, 70);
+    public final Color WIN = new Color(106, 153, 78);
 
     private JPanel mainPanel;
     private JPanel bottomPanel;
@@ -41,8 +40,8 @@ public class ClientGUI extends JFrame {
     private JLabel playerLabel;
 
     private int[] currentMove;
-    private int clientID;
-    private int lobbyID;
+    int clientID;
+    int lobbyID;
 
     public ClientGUI() {
         isNetworked = false;
@@ -177,7 +176,6 @@ public class ClientGUI extends JFrame {
         playerLabel.setForeground(BACKGROUND);
 
         networkButton = new JButton();
-//        networkButton.setFont(new Font("Segoe UI"));
         networkButton.setPreferredSize(new Dimension(110, networkButton.getPreferredSize().height));
         setNetworkButtonFunction(true);
 
@@ -245,11 +243,15 @@ public class ClientGUI extends JFrame {
         @Override
         public void actionPerformed(ActionEvent e) {
             if (!ClientMain.isHostSet()) {
-                NetworkConfigDialog dialog = new NetworkConfigDialog(frame);
-                dialog.setVisible(true);
+                if (networkConfigDialog == null) {
+                    networkConfigDialog = new NetworkConfigDialog(frame);
+                }
 
-                if (dialog.getIpAddress() != null && dialog.getPort() != 0) {
-                    ClientMain.setHostAndPort(dialog.getIpAddress(), dialog.getPort());
+                networkConfigDialog.setVisible(true);
+                networkConfigDialog.setLocationRelativeTo(frame);
+
+                if (networkConfigDialog.getIpAddress() != null && networkConfigDialog.getPort() != 0) {
+                    ClientMain.setHostAndPort(networkConfigDialog.getIpAddress(), networkConfigDialog.getPort());
                 } else {
                     return;
                 }
@@ -273,9 +275,12 @@ public class ClientGUI extends JFrame {
     private class NetworkConfigListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
+            if (networkConfigDialog == null) {
+                networkConfigDialog = new NetworkConfigDialog(frame);
+            }
 
-            NetworkConfigDialog networkConfigDialog = new NetworkConfigDialog(frame);
             networkConfigDialog.setVisible(true);
+            networkConfigDialog.setLocationRelativeTo(frame);
 
             if (networkConfigDialog.getIpAddress() != null && networkConfigDialog.getPort() != 0) {
                 ClientMain.setHostAndPort(networkConfigDialog.getIpAddress(), networkConfigDialog.getPort());
@@ -498,144 +503,5 @@ public class ClientGUI extends JFrame {
             frame = new ClientGUI();
             frame.setVisible(true);
         });
-    }
-
-    class NetworkConfigDialog extends JDialog {
-        private InetAddress DEFAULT_HOST;
-        private final int DEFAULT_PORT = 8000;
-
-        private final JTextField ipField;
-        private final JTextField portField;
-        private final JTextPane clientIDPane;
-        private final JTextPane lobbyIDPane;
-        private final JButton okButton;
-        private final JButton cancelButton;
-
-        private InetAddress ipAddress;
-        private int port;
-
-        public NetworkConfigDialog(Frame parent) {
-            super(parent, "Enter IP and Port", true);
-            setMinimumSize(new Dimension(250, 200));
-            setResizable(false);
-
-            try {
-                DEFAULT_HOST = InetAddress.getLocalHost();
-            } catch (UnknownHostException e) {
-                System.out.println("Could not get localHost : " + e);
-            }
-
-            ipField = new JTextField(DEFAULT_HOST.getHostAddress(), 15);
-            ipField.setFont(new Font("monospaced", Font.PLAIN, 13));
-            if (ClientMain.getHost() != null) {
-                ipField.setText(ClientMain.getHost().getHostAddress());
-            }
-            ipField.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-            portField = new JTextField(String.valueOf(DEFAULT_PORT), 5);
-            portField.setFont(new Font("monospaced", Font.PLAIN, 13));
-            if (ClientMain.getPort() != 0) {
-                portField.setText(String.valueOf(ClientMain.getPort()));
-            }
-            portField.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-            clientIDPane = new JTextPane();
-            clientIDPane.setFont(new Font("monospaced", Font.PLAIN, 13));
-            clientIDPane.setForeground(BACKGROUND);
-            clientIDPane.setEditable(false);
-            clientIDPane.setBackground(null);
-            clientIDPane.setBorder(null);
-            if (clientID == 0) {
-                clientIDPane.setText("-");
-            } else {
-                clientIDPane.setText(String.valueOf(clientID));
-            }
-
-            lobbyIDPane = new JTextPane();
-            lobbyIDPane.setFont(new Font("monospaced", Font.PLAIN, 13));
-            lobbyIDPane.setForeground(BACKGROUND);
-            lobbyIDPane.setEditable(false);
-            lobbyIDPane.setBackground(null);
-            lobbyIDPane.setBorder(null);
-            if (lobbyID != 0) {
-                lobbyIDPane.setText(String.valueOf(lobbyID));
-            } else {
-                lobbyIDPane.setText("-");
-            }
-
-            okButton = new JButton("OK");
-            cancelButton = new JButton("Cancel");
-
-            okButton.addActionListener(e -> {
-                try {
-                    ipAddress = InetAddress.getByName(ipField.getText());
-                    port = Integer.parseInt(portField.getText());
-                    dispose();
-                } catch (NumberFormatException ex) {
-                    JOptionPane.showMessageDialog(NetworkConfigDialog.this, "Invalid port number", "Error", JOptionPane.ERROR_MESSAGE);
-                } catch (UnknownHostException ex) {
-                    JOptionPane.showMessageDialog(NetworkConfigDialog.this, "Invalid IP address", "Error", JOptionPane.ERROR_MESSAGE);
-                }
-            });
-
-            cancelButton.addActionListener(e -> dispose());
-
-            JPanel contentPane = new JPanel();
-            contentPane.setLayout(new BoxLayout(contentPane, BoxLayout.Y_AXIS));
-
-            JPanel clientIDPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-            JLabel clientIDLabel = new JLabel("ClientID :");
-            clientIDLabel.setForeground(BACKGROUND);
-            clientIDPanel.add(clientIDLabel);
-            clientIDPanel.add(clientIDPane);
-            clientIDPanel.setBackground(OPTION_PANEL_BACKGROUND);
-
-            JPanel lobbyIDPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-            JLabel lobbyIDLabel = new JLabel("LobbyID :");
-            lobbyIDLabel.setForeground(BACKGROUND);
-            lobbyIDPanel.add(lobbyIDLabel);
-            lobbyIDPanel.add(lobbyIDPane);
-            lobbyIDPanel.setBackground(OPTION_PANEL_BACKGROUND);
-
-            JPanel ipPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-            JLabel ipLabel = new JLabel("IP Address:");
-            ipLabel.setForeground(BACKGROUND);
-            ipPanel.add(ipLabel);
-            ipPanel.add(ipField);
-            ipPanel.setBackground(OPTION_PANEL_BACKGROUND);
-
-            JPanel portPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-            JLabel portLabel = new JLabel("Port:");
-            portLabel.setForeground(BACKGROUND);
-            portPanel.add(portLabel);
-            portPanel.add(portField);
-            portPanel.setBackground(OPTION_PANEL_BACKGROUND);
-
-            JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-            buttonPanel.add(okButton);
-            buttonPanel.add(cancelButton);
-            buttonPanel.setBackground(OPTION_PANEL_BACKGROUND);
-
-            contentPane.add(clientIDPanel);
-            contentPane.add(lobbyIDPanel);
-            contentPane.add(Box.createRigidArea(new Dimension(-1, 5)));
-            contentPane.add(ipPanel);
-            contentPane.add(portPanel);
-            contentPane.add(buttonPanel);
-
-            contentPane.setBackground(OPTION_PANEL_BACKGROUND);
-
-            getRootPane().setDefaultButton(okButton);
-            setContentPane(contentPane);
-            setLocationRelativeTo(parent);
-        }
-
-        public InetAddress getIpAddress() {
-            return ipAddress;
-        }
-
-        public int getPort() {
-            return port;
-        }
     }
 }

@@ -47,6 +47,10 @@ public class Client implements Runnable {
             readerThread.start();
 
             writer = new ClientWriter();
+            String serverKey = getServerKey();
+            if (serverKey != null) {
+                writer.send(serverKey);
+            }
 
             try {
                 readerThread.join();
@@ -123,6 +127,31 @@ public class Client implements Runnable {
                 System.out.println("Error closing socket");
             }
         }
+    }
+
+    private String getServerKey() {
+        String urlStr = "https://alex-garrison.github.io/server-key";
+
+        try {
+            URL url = new URL(urlStr);
+            URLConnection connection = url.openConnection();
+
+            BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+
+            String line;
+            StringBuilder content = new StringBuilder();
+
+            while ((line = reader.readLine()) != null) {
+                content.append(line).append("\n");
+            }
+
+            reader.close();
+
+            return content.toString().strip();
+        } catch (IOException e) {
+            System.out.println("Error retrieving server IP");
+        }
+        return null;
     }
 
     public void sendNewGame() {
@@ -222,67 +251,58 @@ public class Client implements Runnable {
                             nullDataCounter++;
                         } else if (!receivedData.isEmpty()){
                             String[] args = receivedData.split(":");
-                            switch (args[0]) {
-                                case "CLIENTID":
-                                    try {
-                                        setClientID(Integer.parseInt(args[1]));
-                                    } catch (IndexOutOfBoundsException e) {
-                                        System.out.println("Error with CLIENTID command");
-                                    } catch (Exception e) {
-                                        System.out.println("Error with setting clientID");
-                                    }
-                                    break;
-                                case "LOBBYID":
-                                    try {
-                                        setLobbyID(Integer.parseInt(args[1]));
-                                    } catch (IndexOutOfBoundsException e) {
-                                        System.out.println("Error with LOBBYID command");
-                                    } catch (Exception e) {
-                                        System.out.println("Error with setting clientID");
-                                    }
-                                    break;
-                                case "BOARD":
-                                    try {
-                                        updateBoard(args[1]);
-                                        setClientTurn(false);
-                                    } catch (IndexOutOfBoundsException e) {
-                                        System.out.println("Error with BOARD command");
-                                    }
-                                    break;
-                                case "NEWGAME":
-                                    ClientGUI.frame.clearPlayerLabel();
-                                    boardWon = false;
-                                    break;
-                                case "ASSIGNPLAYER":
-                                    try {
-                                        setPlayer(args[1]);
-                                    } catch (IndexOutOfBoundsException e) {
-                                        System.out.println("Error with ASSIGNPLAYER command");
-                                    }
-                                    break;
-                                case "AWAITTURN":
-                                    setClientTurn(true);
-                                    break;
-                                case "BOARDWON":
-                                    try {
-                                        boardWon(args[1]);
-                                    } catch (IndexOutOfBoundsException e) {
-                                        System.out.println("Error with BOARDWON command");
-                                    }
-                                    break;
-                                case "ERROR":
-                                    try {
-                                        ClientGUI.frame.setBottomLabel(args[1], true, false);
-                                    } catch (IndexOutOfBoundsException e) {
-                                        System.out.println("Error with ERROR command");
-                                    } catch (Exception e) {
-                                        System.out.println("Error displaying error message : " + e);
-                                    }
-                                    break;
-                                case "DISCONNECT":
-                                    keepRunning = false; break;
-                                case default:
-                                    System.out.println("Server sent : " + receivedData);
+                            if (args[0].equals("CLIENTID")) {
+                                try {
+                                    setClientID(Integer.parseInt(args[1]));
+                                } catch (IndexOutOfBoundsException e) {
+                                    System.out.println("Error with CLIENTID command");
+                                } catch (Exception e) {
+                                    System.out.println("Error with setting clientID");
+                                }
+                            } else if (args[0].equals("LOBBYID")) {
+                                try {
+                                    setLobbyID(Integer.parseInt(args[1]));
+                                } catch (IndexOutOfBoundsException e) {
+                                    System.out.println("Error with LOBBYID command");
+                                } catch (Exception e) {
+                                    System.out.println("Error with setting clientID");
+                                }
+                            } else if (args[0].equals("BOARD")) {
+                                try {
+                                    updateBoard(args[1]);
+                                    setClientTurn(false);
+                                } catch (IndexOutOfBoundsException e) {
+                                    System.out.println("Error with BOARD command");
+                                }
+                            } else if (args[0].equals("NEWGAME")) {
+                                ClientGUI.frame.clearPlayerLabel();
+                                boardWon = false;
+                            } else if (args[0].equals("ASSIGNPLAYER")) {
+                                try {
+                                    setPlayer(args[1]);
+                                } catch (IndexOutOfBoundsException e) {
+                                    System.out.println("Error with ASSIGNPLAYER command");
+                                }
+                            } else if (args[0].equals("AWAITTURN")) {
+                                setClientTurn(true);
+                            } else if (args[0].equals("BOARDWON")) {
+                                try {
+                                    boardWon(args[1]);
+                                } catch (IndexOutOfBoundsException e) {
+                                    System.out.println("Error with BOARDWON command");
+                                }
+                            } else if (args[0].equals("ERROR")) {
+                                try {
+                                    ClientGUI.frame.setBottomLabel(args[1], true, false);
+                                } catch (IndexOutOfBoundsException e) {
+                                    System.out.println("Error with ERROR command");
+                                } catch (Exception e) {
+                                    System.out.println("Error displaying error message : " + e);
+                                }
+                            } else if (args[0].equals("DISCONNECT")) {
+                                keepRunning = false;
+                            } else {
+                                System.out.println("Server sent : " + receivedData);
                             }
                         }
                     }  catch (SocketTimeoutException e) {} catch (IOException e) {
@@ -323,7 +343,7 @@ public class Client implements Runnable {
 
             while (!messageSent) {
                 try {
-                    writer.write(message.strip());
+                    writer.write(message);
                     writer.newLine();
                     writer.flush();
                     messageSent = true;

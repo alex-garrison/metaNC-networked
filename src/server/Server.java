@@ -14,13 +14,13 @@ public class Server implements Runnable {
     public static int serverID;
 
     private ServerSocket serverSocket;
-    private static ArrayList<ServerClient> serverClients;
+    public static ArrayList<ServerClient> serverClients;
 
     public static ArrayList<Lobby> lobbies;
     private static int lobbyCounter = 1;
     private static TreeSet<Integer> availableLobbyIDs;
 
-    private static clientHandler clientHandler;
+    public static clientHandler clientHandler;
 
     private static boolean isHeadless;
     private static boolean serverRunning;
@@ -179,7 +179,7 @@ public class Server implements Runnable {
     }
 
     class clientHandler implements Runnable {
-        private static final LinkedList<ServerClient> waitingClients = new LinkedList<>();
+        public final LinkedList<ServerClient> waitingClients = new LinkedList<>();
         @Override
         public void run() {
             while (serverRunning) {
@@ -190,30 +190,28 @@ public class Server implements Runnable {
 
                     ServerClient serverClient = new ServerClient(serverClientSocket, serverClientHandler, serverClientHandlerThread);
                     serverClientHandlerThread.start();
-
-                    if (serverClient.isConnected()) {
-                        serverClients.add(serverClient);
-
-                        waitingClients.add(serverClient);
-                    }
-
-                    synchronized (waitingClients) {
-                        if (waitingClients.size() >= 2) {
-                            ServerClient player1 = waitingClients.removeFirst();
-                            ServerClient player2 = waitingClients.removeFirst();
-
-                            Lobby lobby = new Lobby(new ServerClient[]{player1, player2}, getLobbyID());
-                            player1.setLobby(lobby);
-                            player2.setLobby(lobby);
-
-                            Thread lobbyThread = new Thread(lobby);
-                            lobbyThread.start();
-
-                            lobbies.add(lobby);
-                        }
-                    }
                 } catch (SocketTimeoutException e) {} catch (IOException e) {
                     output("Error accepting serverClient : " + e);
+                }
+            }
+        }
+
+        public void addAuthorisedClient(ServerClient serverClient) {
+            waitingClients.add(serverClient);
+
+            synchronized (waitingClients) {
+                if (waitingClients.size() >= 2) {
+                    ServerClient player1 = waitingClients.removeFirst();
+                    ServerClient player2 = waitingClients.removeFirst();
+
+                    Lobby lobby = new Lobby(new ServerClient[]{player1, player2}, getLobbyID());
+                    player1.setLobby(lobby);
+                    player2.setLobby(lobby);
+
+                    Thread lobbyThread = new Thread(lobby);
+                    lobbyThread.start();
+
+                    lobbies.add(lobby);
                 }
             }
         }

@@ -280,7 +280,7 @@ public class Board {
         for (int i = 0; i < 9; i=i+3) {
             for (int j = i; j < 27; j=j+9) {
                 for (int k = j; k < (j+3); k++) {
-                    output.append(outputArr[k].strip()).append(" ");
+                    output.append(outputArr[k]).append(" ");
                     if (k<(j+2)) output.append("| ");
                 }
                 output.append(" \n");
