@@ -1,5 +1,7 @@
 package client;
 
+import com.formdev.flatlaf.themes.FlatMacDarkLaf;
+
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
@@ -11,13 +13,14 @@ import java.lang.reflect.InvocationTargetException;
 public class ClientGUI extends JFrame {
     public static ClientGUI frame;
     private static NetworkConfigDialog networkConfigDialog;
+    private static TutorialDialog tutorialDialog;
 
     private boolean isNetworked;
     private boolean waitingForNewGame;
 
     public final Color BACKGROUND = new Color(224, 225, 221);
-    public final Color LINE = new Color(13, 27, 42);
-    public final Color OPTION_PANEL_BACKGROUND = new Color(27, 38, 59);
+//    public final Color LINE = new Color(13, 27, 42);
+//    public final Color OPTION_PANEL_BACKGROUND = new Color(27, 38, 59);
     public final Color BOARD_INDICATOR = new Color(65, 90, 119);
     public final Color WON_BOARD = new Color(119, 141, 169);
     public final Color ERROR = new Color(230, 57, 70);
@@ -38,6 +41,7 @@ public class ClientGUI extends JFrame {
     private JButton networkConfigButton;
     private JLabel networkLabel;
     private JLabel playerLabel;
+    private JButton tutorialButton;
 
     private int[] currentMove;
     int clientID;
@@ -50,14 +54,16 @@ public class ClientGUI extends JFrame {
     }
 
     private void initGUI() {
+        FlatMacDarkLaf.setup();
+
         setTitle("Ultimate Noughts and Crosses");
         setMinimumSize(new Dimension(450, 500));
         setResizable(false);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        getContentPane().setBackground(OPTION_PANEL_BACKGROUND);
 
         mainPanel = new JPanel();
-        mainPanel.setLayout(new GridLayout(3,3));
+        mainPanel.setLayout(new GridLayout(3,3, 3, 3));
+        mainPanel.setBackground(Color.WHITE);
 
         boardPanels = new JPanel[9];
         cells = new JButton[9][3][3];
@@ -79,18 +85,15 @@ public class ClientGUI extends JFrame {
 
     private JPanel createBoardPanel(int boardIndex) {
         JPanel boardPanel = new JPanel();
-        boardPanel.setLayout(new GridLayout(3,3));
-        boardPanel.setBackground(BACKGROUND);
-        boardPanel.setBorder(new LineBorder(LINE, 2));
+        boardPanel.setLayout(new GridLayout(3,3, -1, -1));
 
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 3; col++) {
                 JButton cell = new JButton("");
                 cell.setPreferredSize(new Dimension(50,50));
-                cell.setBorder(new LineBorder(LINE,1));
+                cell.setBorder(new LineBorder(Color.WHITE,1));
                 cell.setOpaque(false);
                 cell.setContentAreaFilled(false);
-                cell.setForeground(LINE);
                 cell.setFont(new Font("monospaced", Font.PLAIN, 40));
                 cell.addActionListener(new CellClickListener(boardIndex, row, col));
                 boardPanel.add(cell);
@@ -133,14 +136,18 @@ public class ClientGUI extends JFrame {
         bottomLabel.setFont(new Font(bottomLabel.getFont().getFontName(), Font.PLAIN, 20));
         bottomLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
+        ImageIcon tutorialIcon = new ImageIcon("/Users/alex/Programming/NEA/Actual/metaNC-networked/src/client/icons/tutorialIcon.png");
+        tutorialIcon = new ImageIcon(tutorialIcon.getImage().getScaledInstance(20,20, java.awt.Image.SCALE_SMOOTH));
+        tutorialButton = new JButton(tutorialIcon);
+        tutorialButton.addActionListener(new TutorialListener());
+
         gameOptionPanel.add(newGameButton);
         gameOptionPanel.add(Box.createRigidArea(new Dimension(5,-1)));
         gameOptionPanel.add(selectMode);
         gameOptionPanel.add(Box.createHorizontalGlue());
         gameOptionPanel.add(bottomLabel);
         gameOptionPanel.add(Box.createHorizontalGlue());
-
-        gameOptionPanel.setBackground(OPTION_PANEL_BACKGROUND);
+        gameOptionPanel.add(tutorialButton);
 
         return gameOptionPanel;
     }
@@ -150,7 +157,6 @@ public class ClientGUI extends JFrame {
         networkOptionPanel.setLayout(new BoxLayout(networkOptionPanel, BoxLayout.X_AXIS));
         networkOptionPanel.setBorder(new EmptyBorder(3,5,3,5));
         networkOptionPanel.setPreferredSize(new Dimension((int) networkOptionPanel.getPreferredSize().getWidth(), 40));
-        networkOptionPanel.setBackground(OPTION_PANEL_BACKGROUND);
 
         connectButton = new JButton("Connect");
         connectButton.addActionListener(new ConnectClickListener());
@@ -168,12 +174,10 @@ public class ClientGUI extends JFrame {
         networkLabel = new JLabel("");
         networkLabel.setFont(new Font(networkLabel.getFont().getFontName(), Font.PLAIN, 20));
         networkLabel.setAlignmentX(Component.RIGHT_ALIGNMENT);
-        networkLabel.setForeground(BACKGROUND);
 
         playerLabel = new JLabel("");
         playerLabel.setFont(new Font(playerLabel.getFont().getFontName(), Font.PLAIN, 35));
         playerLabel.setAlignmentX(Component.RIGHT_ALIGNMENT);
-        playerLabel.setForeground(BACKGROUND);
 
         networkButton = new JButton();
         networkButton.setPreferredSize(new Dimension(110, networkButton.getPreferredSize().height));
@@ -288,6 +292,18 @@ public class ClientGUI extends JFrame {
         }
     }
 
+    private class TutorialListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            if (tutorialDialog == null) {
+                tutorialDialog = new TutorialDialog(frame);
+            }
+
+            tutorialDialog.setVisible(true);
+            tutorialDialog.setLocationRelativeTo(frame);
+        }
+    }
+
     public void waitForNewGame() throws InterruptedException {
         if (!isNetworked) {
             waitingForNewGame = true;
@@ -331,7 +347,7 @@ public class ClientGUI extends JFrame {
                             if ((boardIndex == lastMove[0]) && (row == lastMove[1]) && (col == lastMove[2])) {
                                 cells[boardIndex][row][col].setForeground(ERROR);
                             } else {
-                                cells[boardIndex][row][col].setForeground(LINE);
+                                cells[boardIndex][row][col].setForeground(Color.WHITE);
                             }
                         }
                     }
@@ -345,8 +361,10 @@ public class ClientGUI extends JFrame {
     public void setBoardColours(Board board, String clientPlayer) {
         try {
             SwingUtilities.invokeAndWait(() -> {
+                Color defaultCol = topPanel.getBackground();
                 Color col;
                 for (int i = 0; i < boardPanels.length; i++) {
+                    col = defaultCol;
                     if (board.getCorrectLocalBoard() == i && !board.isWon && board.whoseTurn().equals(clientPlayer)) {
                         col = BOARD_INDICATOR;
                     } else if (board.isWonBoard(i)) {
@@ -354,8 +372,6 @@ public class ClientGUI extends JFrame {
                             setWinPanel(i, board);
                         }
                         col = WON_BOARD;
-                    } else {
-                        col = BACKGROUND;
                     }
                     boardPanels[i].setBackground(col);
                 }
@@ -368,8 +384,10 @@ public class ClientGUI extends JFrame {
     public void setBoardColours(Board board) {
         try {
             SwingUtilities.invokeAndWait(() -> {
+                Color defaultCol = topPanel.getBackground();
                 Color col;
                 for (int i = 0; i < boardPanels.length; i++) {
+                    col = defaultCol;
                     if (board.getCorrectLocalBoard() == i && !board.isWon) {
                         col = BOARD_INDICATOR;
                     } else if (board.isWonBoard(i)) {
@@ -377,8 +395,6 @@ public class ClientGUI extends JFrame {
                             setWinPanel(i, board);
                         }
                         col = WON_BOARD;
-                    } else {
-                        col = BACKGROUND;
                     }
                     boardPanels[i].setBackground(col);
                 }

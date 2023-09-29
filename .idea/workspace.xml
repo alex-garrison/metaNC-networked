@@ -1,17 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="412dbc24-db8c-4dbf-8797-c3a3b012b83b" name="Changes" comment="added client authentication, and fetching of the server IP and auth-key from the website">
-      <change afterPath="$PROJECT_DIR$/src/client/NetworkConfigDialog.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+    <list default="true" id="412dbc24-db8c-4dbf-8797-c3a3b012b83b" name="Changes" comment="added a tutorial dialog">
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/flatlaf_3_1_1.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FlatLAF/flatlaf-3.1.1-javadoc.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FlatLAF/flatlaf-3.1.1-sources.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FlatLAF/flatlaf-3.1.1.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/FlatLAF/themes/metaNC.properties" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/client/TutorialDialog.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/client/icons/tutorialIcon.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/client/tutorialPages/page1.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/client/tutorialPages/page2.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/client/tutorialPages/page3.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/client/tutorialPages/page4.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/client/Board.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/client/Board.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/client/Client.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/client/Client.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/client/ClientGUI.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/client/ClientGUI.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/client/ClientMain.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/client/ClientMain.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/client/NetworkConfigDialog.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/client/NetworkConfigDialog.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/server/Server.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/server/Server.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/server/ServerClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/server/ServerClient.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/server/ServerClientHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/server/ServerClientHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/server/ServerGUI.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/server/ServerGUI.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -53,9 +62,9 @@
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "WebServerToolWindowFactoryState": "false",
     "jdk.selected.JAVA_MODULE": "20",
-    "last_opened_file_path": "/Users/alex/Programming/NEA/Actual/metaNC-networked",
+    "last_opened_file_path": "/Users/alex/Programming/NEA/Actual/metaNC-networked/src/client/tutorialPages",
     "nodejs_package_manager_path": "npm",
-    "project.structure.last.edited": "Project",
+    "project.structure.last.edited": "Libraries",
     "project.structure.proportion": "0.15",
     "project.structure.side.proportion": "0.2",
     "settings.editor.selected.configurable": "project.propCompiler",
@@ -64,6 +73,7 @@
 }]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/src/client/tutorialPages" />
       <recent name="$PROJECT_DIR$" />
       <recent name="$PROJECT_DIR$/src/server" />
     </key>
@@ -127,6 +137,7 @@
       <workItem from="1692710582633" duration="127146000" />
       <workItem from="1693394931363" duration="21806000" />
       <workItem from="1693445964795" duration="19996000" />
+      <workItem from="1695747190614" duration="18450000" />
     </task>
     <task id="LOCAL-00001" summary="added tracking for won boards, disallows moves to won boards, win condition is based on global board">
       <created>1691083445422</created>
@@ -247,7 +258,14 @@
       <option name="project" value="LOCAL" />
       <updated>1693349269084</updated>
     </task>
-    <option name="localTasksCounter" value="18" />
+    <task id="LOCAL-00018" summary="added client authentication, and fetching of the server IP and auth-key from the website">
+      <created>1695666140788</created>
+      <option name="number" value="00018" />
+      <option name="presentableId" value="LOCAL-00018" />
+      <option name="project" value="LOCAL" />
+      <updated>1695666140788</updated>
+    </task>
+    <option name="localTasksCounter" value="19" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -318,7 +336,8 @@
     <MESSAGE value="integrated networked and local game loops, and bug fixes + improvements" />
     <MESSAGE value="added lobby system" />
     <MESSAGE value="added client authentication, and fetching of the server IP and auth-key from the website" />
-    <option name="LAST_COMMIT_MESSAGE" value="added client authentication, and fetching of the server IP and auth-key from the website" />
+    <MESSAGE value="added a tutorial dialog" />
+    <option name="LAST_COMMIT_MESSAGE" value="added a tutorial dialog" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

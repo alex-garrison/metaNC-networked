@@ -62,9 +62,7 @@ public class Server implements Runnable {
         clientHandlerThread.start();
         try {
             clientHandlerThread.join();
-        } catch (InterruptedException e) {
-            Server.output("Error waiting for the clientHandlerThread to stop : " + e);
-        }
+        } catch (InterruptedException e) {}
 
         broadcast("DISCONNECT");
         if (serverClients.size() > 0) {

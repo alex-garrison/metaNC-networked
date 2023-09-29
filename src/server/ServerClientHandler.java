@@ -3,6 +3,8 @@ package server;
 import java.io.*;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
+import java.net.URL;
+import java.net.URLConnection;
 
 public class ServerClientHandler implements Runnable {
     private final Socket serverClientSocket;
@@ -13,6 +15,7 @@ public class ServerClientHandler implements Runnable {
     private ServerClientWriter writer;
     private boolean keepRunning;
 
+    private String serverKey;
     private int clientID = 0;
 
     private final int TIMEOUT_MILLIS = 500;
@@ -24,6 +27,8 @@ public class ServerClientHandler implements Runnable {
         } catch (IOException e) {
             output("Error setting timeout");
         }
+
+        serverKey = getServerKey();
 
         keepRunning = true;
     }
@@ -93,6 +98,31 @@ public class ServerClientHandler implements Runnable {
         keepRunning = false;
     }
 
+    private String getServerKey() {
+        String urlStr = "https://alex-garrison.github.io/server-key";
+
+        try {
+            URL url = new URL(urlStr);
+            URLConnection connection = url.openConnection();
+
+            BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+
+            String line;
+            StringBuilder content = new StringBuilder();
+
+            while ((line = reader.readLine()) != null) {
+                content.append(line).append("\n");
+            }
+
+            reader.close();
+
+            return content.toString().strip();
+        } catch (IOException e) {
+            System.out.println("Error retrieving server IP");
+        }
+        return null;
+    }
+
     private class ServerClientReader implements Runnable {
         private BufferedReader reader;
         private boolean keepRunning;
@@ -127,7 +157,7 @@ public class ServerClientHandler implements Runnable {
                             Thread.sleep(100);
                         } else if (!receivedData.isEmpty()) {
                             if (!serverClient.isAuthorised()) {
-                                if (receivedData.equals("I-LOVE-NOUGHTS-AND-CROSSES")) {
+                                if (receivedData.equals("AUTH:" + serverKey)) {
                                     serverClient.authoriseClient();
                                     writer.send("CLIENTID:" + clientID);
                                 }

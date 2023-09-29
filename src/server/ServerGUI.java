@@ -1,5 +1,7 @@
 package server;
 
+import com.formdev.flatlaf.themes.FlatMacDarkLaf;
+
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
@@ -16,11 +18,11 @@ public class ServerGUI extends JFrame {
     public static ServerGUI frame;
 
     private static final Color TEXT = new Color(224, 225, 221);
-    private final Color BACKGROUND = new Color(27, 38, 59);
     private static final Color OUTPUT_BACKGROUND = Color.BLACK;
 
     private static JTabbedPane tabs;
 
+    private static JPanel contentPane;
     private static JPanel serverOutputPanel;
     private static JTextArea serverOutput;
 
@@ -40,17 +42,16 @@ public class ServerGUI extends JFrame {
     }
 
     private void initGUI() {
+        FlatMacDarkLaf.setup();
+
         setTitle("uNC - Server");
         setMinimumSize(new Dimension(500, 550));
         setResizable(false);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLayout(new BoxLayout(getContentPane(), BoxLayout.Y_AXIS));
-        getContentPane().setBackground(BACKGROUND);
 
         optionPanel = new JPanel();
         optionPanel.setBorder(new EmptyBorder(10,20,0,25));
         optionPanel.setLayout(new BoxLayout(optionPanel, BoxLayout.X_AXIS));
-        optionPanel.setBackground(BACKGROUND);
 
         startServerButton = new JButton("Start");
         startServerButton.addActionListener(new StartServerListener());
@@ -73,7 +74,7 @@ public class ServerGUI extends JFrame {
 
         serverOutputPanel = new JPanel();
         serverOutputPanel.setBorder(new EmptyBorder(0,5,0,5));
-        serverOutputPanel.setBackground(BACKGROUND);
+        serverOutputPanel.setLayout(new GridLayout());
 
         serverOutput = new JTextArea();
         serverOutput.setFont(new Font("monospaced", Font.PLAIN, 15));
@@ -91,13 +92,17 @@ public class ServerGUI extends JFrame {
 
         tabs = new JTabbedPane();
         tabs.setForeground(TEXT);
-        tabs.setBackground(BACKGROUND);
         tabs.setBorder(new EmptyBorder(10,10,10,10));
         tabs.add("Server", serverOutputPanel);
 
-        add(optionPanel);
-        add(Box.createVerticalGlue());
-        add(tabs);
+        contentPane = new JPanel();
+        contentPane.setLayout(new BoxLayout(contentPane, BoxLayout.Y_AXIS));
+
+        contentPane.add(optionPanel);
+        contentPane.add(Box.createVerticalGlue());
+        contentPane.add(tabs);
+
+        add(contentPane);
     }
 
     private class StartServerListener implements ActionListener {
@@ -136,14 +141,12 @@ public class ServerGUI extends JFrame {
                 SwingUtilities.invokeAndWait(() -> {
                     JPanel lobbyOutputPanel = new JPanel();
                     lobbyOutputPanel.setBorder(new EmptyBorder(0,5,0,5));
-                    lobbyOutputPanel.setBackground(BACKGROUND);
 
                     JTextArea lobbyOutput = new JTextArea();
                     lobbyOutput.setFont(new Font("monospaced", Font.PLAIN, 15));
                     lobbyOutput.setBackground(OUTPUT_BACKGROUND);
                     lobbyOutput.setForeground(TEXT);
                     lobbyOutput.setEditable(false);
-                    lobbyOutput.setBorder(new EmptyBorder(5,5,5,5));
                     DefaultCaret caret = (DefaultCaret) lobbyOutput.getCaret();
                     caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
                     JScrollPane scrollPane = new JScrollPane(lobbyOutput);
@@ -181,16 +184,12 @@ public class ServerGUI extends JFrame {
 
     public void printToLobby(String text, Lobby lobby) {
         if (!SwingUtilities.isEventDispatchThread()) {
-//            try {
-                SwingUtilities.invokeLater(() -> {
-                    JTextArea lobbyOutput = lobbyOutputs.get(lobby.lobbyID);
-                    if (lobbyOutput != null) {
-                        lobbyOutput.append(text + "\n");
-                    }
-                });
-//            } catch (InterruptedException | InvocationTargetException e) {
-//                throw new RuntimeException(e);
-//            }
+            SwingUtilities.invokeLater(() -> {
+                JTextArea lobbyOutput = lobbyOutputs.get(lobby.lobbyID);
+                if (lobbyOutput != null) {
+                    lobbyOutput.append(text + "\n");
+                }
+            });
         }
     }
 

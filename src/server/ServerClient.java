@@ -21,6 +21,7 @@ public class ServerClient {
         this.serverClientHandler.setClientID(this.clientID);
         this.serverClientHandler.setServerClient(this);
 
+        new Thread(new authMonitor(this)).start();
         new Thread(new monitor(this)).start();
     }
 
@@ -36,7 +37,7 @@ public class ServerClient {
     }
 
     public void output(String text) {
-        Server.print("C:" + clientID + ": " + text);
+        Server.print("C" + clientID + ": " + text);
     }
 
     public int getClientID() {
@@ -79,14 +80,32 @@ public class ServerClient {
                     }
                 }
 
-                if (lobby != null) {
-                    lobby.serverClientDisconnected(serverClient);
-                } else {
-                    Server.serverClientDisconnected(serverClient, false);
+                if (isAuthorised) {
+                    if (lobby != null) {
+                        lobby.serverClientDisconnected(serverClient);
+                    } else {
+                        Server.serverClientDisconnected(serverClient, false);
+                    }
                 }
-
             }
         }
     }
 
+    private class authMonitor implements Runnable {
+        ServerClient serverClient;
+        public authMonitor(ServerClient serverClient) {
+            this.serverClient = serverClient;
+        }
+        public void run() {
+            try {
+                Thread.sleep(10000);
+
+                if (!isAuthorised) {
+                    serverClient.stopClient();
+                }
+            } catch (InterruptedException e) {
+                output("Error waiting for serverClientHandlerThread to stop");
+            }
+        }
+    }
 }

@@ -8,8 +8,6 @@ import java.io.InputStreamReader;
 import java.net.*;
 
 class NetworkConfigDialog extends JDialog {
-    private final Color BACKGROUND = ClientGUI.frame.BACKGROUND;
-    private final Color OPTION_PANEL_BACKGROUND = ClientGUI.frame.OPTION_PANEL_BACKGROUND;
 
     private InetAddress DEFAULT_HOST;
     private final int DEFAULT_PORT = 8000;
@@ -52,7 +50,6 @@ class NetworkConfigDialog extends JDialog {
 
         clientIDPane = new JTextPane();
         clientIDPane.setFont(new Font("monospaced", Font.PLAIN, 13));
-        clientIDPane.setForeground(BACKGROUND);
         clientIDPane.setEditable(false);
         clientIDPane.setBackground(null);
         clientIDPane.setBorder(null);
@@ -64,7 +61,6 @@ class NetworkConfigDialog extends JDialog {
 
         lobbyIDPane = new JTextPane();
         lobbyIDPane.setFont(new Font("monospaced", Font.PLAIN, 13));
-        lobbyIDPane.setForeground(BACKGROUND);
         lobbyIDPane.setEditable(false);
         lobbyIDPane.setBackground(null);
         lobbyIDPane.setBorder(null);
@@ -96,36 +92,27 @@ class NetworkConfigDialog extends JDialog {
 
         JPanel clientIDPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         JLabel clientIDLabel = new JLabel("ClientID :");
-        clientIDLabel.setForeground(BACKGROUND);
         clientIDPanel.add(clientIDLabel);
         clientIDPanel.add(clientIDPane);
-        clientIDPanel.setBackground(OPTION_PANEL_BACKGROUND);
 
         JPanel lobbyIDPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         JLabel lobbyIDLabel = new JLabel("LobbyID :");
-        lobbyIDLabel.setForeground(BACKGROUND);
         lobbyIDPanel.add(lobbyIDLabel);
         lobbyIDPanel.add(lobbyIDPane);
-        lobbyIDPanel.setBackground(OPTION_PANEL_BACKGROUND);
 
         JPanel ipPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         JLabel ipLabel = new JLabel("IP Address:");
-        ipLabel.setForeground(BACKGROUND);
         ipPanel.add(ipLabel);
         ipPanel.add(ipField);
-        ipPanel.setBackground(OPTION_PANEL_BACKGROUND);
 
         JPanel portPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         JLabel portLabel = new JLabel("Port:");
-        portLabel.setForeground(BACKGROUND);
         portPanel.add(portLabel);
         portPanel.add(portField);
-        portPanel.setBackground(OPTION_PANEL_BACKGROUND);
 
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         buttonPanel.add(okButton);
         buttonPanel.add(cancelButton);
-        buttonPanel.setBackground(OPTION_PANEL_BACKGROUND);
 
         contentPane.add(clientIDPanel);
         contentPane.add(lobbyIDPanel);
@@ -133,8 +120,6 @@ class NetworkConfigDialog extends JDialog {
         contentPane.add(ipPanel);
         contentPane.add(portPanel);
         contentPane.add(buttonPanel);
-
-        contentPane.setBackground(OPTION_PANEL_BACKGROUND);
 
         getRootPane().setDefaultButton(okButton);
         setContentPane(contentPane);

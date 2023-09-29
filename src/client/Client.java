@@ -49,7 +49,7 @@ public class Client implements Runnable {
             writer = new ClientWriter();
             String serverKey = getServerKey();
             if (serverKey != null) {
-                writer.send(serverKey);
+                writer.send("AUTH:" + serverKey);
             }
 
             try {
