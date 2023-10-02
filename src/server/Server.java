@@ -1,8 +1,11 @@
 package server;
 
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.*;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.TreeSet;
 
@@ -21,8 +24,10 @@ public class Server implements Runnable {
     private static TreeSet<Integer> availableLobbyIDs;
 
     public static clientHandler clientHandler;
+    private static loggingHandler loggingHandler;
 
     private static boolean isHeadless;
+    private static boolean isLogging;
     private static boolean serverRunning;
 
     public Server() {
@@ -31,6 +36,7 @@ public class Server implements Runnable {
         availableLobbyIDs = new TreeSet<>();
         serverRunning = true;
         isHeadless = ServerMain.isHeadless();
+        isLogging = ServerMain.isLogging();
 
         server = this;
         serverID = this.hashCode();
@@ -38,6 +44,12 @@ public class Server implements Runnable {
 
     @Override
     public void run() {
+        if (isLogging) {
+            loggingHandler = new loggingHandler();
+            Thread loggingHandlerThread = new Thread(loggingHandler);
+            loggingHandlerThread.start();
+        }
+
         output("Started server");
 
         try {
@@ -78,6 +90,7 @@ public class Server implements Runnable {
 
         output("Server stopped");
         if (!isHeadless) ServerMain.serverStopped();
+        if (isLogging) Server.loggingHandler.stopRunning();
     }
 
     private static void broadcast(String message) {
@@ -105,6 +118,10 @@ public class Server implements Runnable {
             System.out.println(text);
         } else {
             ServerGUI.frame.printToServer(text);
+        }
+
+        if (isLogging) {
+            Server.loggingHandler.log(text);
         }
     }
 
@@ -219,6 +236,57 @@ public class Server implements Runnable {
                 waitingClients.remove(serverClient);
                 System.out.println(waitingClients);
             }
+        }
+    }
+
+    static class loggingHandler implements Runnable {
+        String logFileName = "serverLog.txt";
+        FileWriter fileWriter;
+        boolean keepRunning = true;
+
+        @Override
+        public void run() {
+            try {
+                fileWriter = new FileWriter(logFileName, false);
+
+                while (keepRunning) {
+                    Thread.sleep(100);
+                }
+
+                fileWriter.close();
+            } catch (IOException e) {
+                output("Could not open log file");
+            } catch (InterruptedException e) {
+                output("Error with loggingHandler thread");
+            }
+        }
+
+        public void log(String message) {
+            boolean messageSent = false;
+            int errorCount = 0;
+
+            while (keepRunning && fileWriter != null && !messageSent) {
+                try {
+                    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                    String timestamp = dateFormat.format(new Date());
+
+                    fileWriter.write("[" + timestamp + "] " + message.strip());
+                    fileWriter.write("\n");
+                    fileWriter.flush();
+
+                    messageSent = true;
+                } catch (IOException e) {
+                    if (errorCount >= 5) {
+                        keepRunning = false;
+                    } else {
+                        errorCount++;
+                    }
+                }
+            }
+        }
+
+        public void stopRunning() {
+            this.keepRunning = false;
         }
     }
 }

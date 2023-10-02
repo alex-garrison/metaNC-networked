@@ -137,9 +137,15 @@ public class ClientGUI extends JFrame {
         bottomLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         ImageIcon tutorialIcon = new ImageIcon("/Users/alex/Programming/NEA/Actual/metaNC-networked/src/client/icons/tutorialIcon.png");
-        tutorialIcon = new ImageIcon(tutorialIcon.getImage().getScaledInstance(20,20, java.awt.Image.SCALE_SMOOTH));
-        tutorialButton = new JButton(tutorialIcon);
-        tutorialButton.addActionListener(new TutorialListener());
+
+        if (tutorialIcon != null) {
+            tutorialIcon = new ImageIcon(tutorialIcon.getImage().getScaledInstance(20,20, java.awt.Image.SCALE_SMOOTH));
+            tutorialButton = new JButton(tutorialIcon);
+            tutorialButton.addActionListener(new TutorialListener());
+        } else {
+            tutorialButton = new JButton();
+            tutorialButton.addActionListener(new TutorialListener());
+        }
 
         gameOptionPanel.add(newGameButton);
         gameOptionPanel.add(Box.createRigidArea(new Dimension(5,-1)));
@@ -167,10 +173,14 @@ public class ClientGUI extends JFrame {
         disconnectButton.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         ImageIcon configIcon = new ImageIcon("/Users/alex/Programming/NEA/Actual/metaNC-networked/src/client/icons/configIcon.png");
-        configIcon = new ImageIcon(configIcon.getImage().getScaledInstance(20,20, java.awt.Image.SCALE_SMOOTH));
-        networkConfigButton = new JButton(configIcon);
-        networkConfigButton.addActionListener(new NetworkConfigListener());
-
+        if (configIcon != null) {
+            configIcon = new ImageIcon(configIcon.getImage().getScaledInstance(20,20, Image.SCALE_SMOOTH));
+            networkConfigButton = new JButton(configIcon);
+            networkConfigButton.addActionListener(new NetworkConfigListener());
+        } else {
+            networkConfigButton = new JButton();
+            networkConfigButton.addActionListener(new NetworkConfigListener());
+        }
         networkLabel = new JLabel("");
         networkLabel.setFont(new Font(networkLabel.getFont().getFontName(), Font.PLAIN, 20));
         networkLabel.setAlignmentX(Component.RIGHT_ALIGNMENT);
@@ -436,10 +446,12 @@ public class ClientGUI extends JFrame {
 
     public void setClientID(int clientID) {
         this.clientID = clientID;
+        networkConfigDialog.setClientID();
     }
 
     public void setLobbyID(int lobbyID) {
         this.lobbyID = lobbyID;
+        networkConfigDialog.setLobbyID();
     }
 
     public void setNetworkLabel(String text, boolean error) {
@@ -504,6 +516,10 @@ public class ClientGUI extends JFrame {
 
     public String getPlayerLabel() {
         return playerLabel.getText();
+    }
+
+    public void setNewGameEnabled(Boolean isEnabled) {
+        newGameButton.setEnabled(isEnabled);
     }
 
     public static void startGUI() throws InterruptedException, InvocationTargetException {

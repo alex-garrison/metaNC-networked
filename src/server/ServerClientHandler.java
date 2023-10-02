@@ -237,6 +237,7 @@ public class ServerClientHandler implements Runnable {
                 } catch (SocketTimeoutException e) {} catch (IOException e) {
                     if (errorCount >= 5) {
                         close();
+                        break;
                     } else {
                         output("Error sending message : " + e);
                         errorCount++;

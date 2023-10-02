@@ -156,6 +156,24 @@ class NetworkConfigDialog extends JDialog {
             serverPort = Integer.parseInt(content.toString().split(":")[1].strip());
         } catch (IOException e) {
             System.out.println("Error retrieving server IP");
+            serverIpAddress = DEFAULT_HOST;
+            serverPort = DEFAULT_PORT;
+        }
+    }
+
+    public void setClientID() {
+        if (ClientGUI.frame.clientID == 0) {
+            clientIDPane.setText("-");
+        } else {
+            clientIDPane.setText(String.valueOf(ClientGUI.frame.clientID));
+        }
+    }
+
+    public void setLobbyID() {
+        if (ClientGUI.frame.lobbyID != 0) {
+            lobbyIDPane.setText(String.valueOf(ClientGUI.frame.lobbyID));
+        } else {
+            lobbyIDPane.setText("-");
         }
     }
 }

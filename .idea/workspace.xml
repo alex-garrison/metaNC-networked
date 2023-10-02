@@ -1,26 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="412dbc24-db8c-4dbf-8797-c3a3b012b83b" name="Changes" comment="added a tutorial dialog">
-      <change afterPath="$PROJECT_DIR$/.idea/libraries/flatlaf_3_1_1.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FlatLAF/flatlaf-3.1.1-javadoc.jar" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FlatLAF/flatlaf-3.1.1-sources.jar" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FlatLAF/flatlaf-3.1.1.jar" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/FlatLAF/themes/metaNC.properties" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/client/TutorialDialog.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/client/icons/tutorialIcon.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/client/tutorialPages/page1.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/client/tutorialPages/page2.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/client/tutorialPages/page3.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/client/tutorialPages/page4.html" afterDir="false" />
+    <list default="true" id="412dbc24-db8c-4dbf-8797-c3a3b012b83b" name="Changes" comment="server logging, and bug fixes">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/client/Client.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/client/Client.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/client/ClientGUI.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/client/ClientGUI.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/client/NetworkConfigDialog.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/client/NetworkConfigDialog.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/server/Server.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/server/Server.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/server/ServerClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/server/ServerClient.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/server/ServerClientHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/server/ServerClientHandler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/server/ServerGUI.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/server/ServerGUI.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/server/ServerMain.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/server/ServerMain.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -68,7 +56,8 @@
     "project.structure.proportion": "0.15",
     "project.structure.side.proportion": "0.2",
     "settings.editor.selected.configurable": "project.propCompiler",
-    "two.files.diff.last.used.file": "/Users/alex/Programming/NEA/Actual/metaNC-GUI/src/Board.java"
+    "two.files.diff.last.used.file": "/Users/alex/Programming/NEA/Actual/metaNC-GUI/src/Board.java",
+    "two.files.diff.last.used.folder": "/Users/alex/Programming/NEA/Actual/release/metaNC-release/Client/src/main/java"
   }
 }]]></component>
   <component name="RecentsManager">
@@ -137,7 +126,9 @@
       <workItem from="1692710582633" duration="127146000" />
       <workItem from="1693394931363" duration="21806000" />
       <workItem from="1693445964795" duration="19996000" />
-      <workItem from="1695747190614" duration="18450000" />
+      <workItem from="1695747190614" duration="21929000" />
+      <workItem from="1696174318275" duration="745000" />
+      <workItem from="1696270198737" duration="1504000" />
     </task>
     <task id="LOCAL-00001" summary="added tracking for won boards, disallows moves to won boards, win condition is based on global board">
       <created>1691083445422</created>
@@ -265,7 +256,14 @@
       <option name="project" value="LOCAL" />
       <updated>1695666140788</updated>
     </task>
-    <option name="localTasksCounter" value="19" />
+    <task id="LOCAL-00019" summary="added a tutorial dialog">
+      <created>1696021989071</created>
+      <option name="number" value="00019" />
+      <option name="presentableId" value="LOCAL-00019" />
+      <option name="project" value="LOCAL" />
+      <updated>1696021989072</updated>
+    </task>
+    <option name="localTasksCounter" value="20" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -337,7 +335,8 @@
     <MESSAGE value="added lobby system" />
     <MESSAGE value="added client authentication, and fetching of the server IP and auth-key from the website" />
     <MESSAGE value="added a tutorial dialog" />
-    <option name="LAST_COMMIT_MESSAGE" value="added a tutorial dialog" />
+    <MESSAGE value="server logging, and bug fixes" />
+    <option name="LAST_COMMIT_MESSAGE" value="server logging, and bug fixes" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

@@ -6,16 +6,22 @@ public class ServerMain {
     private static Thread serverThread;
 
     private static boolean isHeadless;
+    private static boolean isLogging;
 
     private ServerMain() {}
 
     public static void main(String[] args) {
         serverMain = new ServerMain();
         isHeadless = false;
+        isLogging = false;
 
         if (args.length > 0) {
-            if (args[0].equals("-H") || args[0].equals("--headless")) {
-                isHeadless = true;
+            for (String arg: args) {
+                if (arg.equals("-H") || arg.equals("--headless")) {
+                    isHeadless = true;
+                } else if (arg.equals("-L") || arg.equals("--logging")) {
+                    isLogging = true;
+                }
             }
         }
 
@@ -70,5 +76,9 @@ public class ServerMain {
 
     public static boolean isHeadless() {
         return isHeadless;
+    }
+
+    public static boolean isLogging() {
+        return isLogging;
     }
 }

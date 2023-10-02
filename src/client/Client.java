@@ -42,6 +42,8 @@ public class Client implements Runnable {
             ClientGUI.frame.setNetworkButtonFunction(false);
             ClientGUI.frame.setNetworkMode(true);
 
+            ClientGUI.frame.setNewGameEnabled(false);
+
             reader = new ClientReader();
             Thread readerThread = new Thread(reader);
             readerThread.start();
@@ -50,6 +52,8 @@ public class Client implements Runnable {
             String serverKey = getServerKey();
             if (serverKey != null) {
                 writer.send("AUTH:" + serverKey);
+            } else {
+                writer.send("AUTH");
             }
 
             try {
@@ -170,6 +174,7 @@ public class Client implements Runnable {
     private void setLobbyID(int lobbyID) {
         ClientGUI.frame.setLobbyID(lobbyID);
         System.out.println("Set lobbyID : " + lobbyID);
+        ClientGUI.frame.setNewGameEnabled(true);
     }
 
     public void setPlayer(String player) {
@@ -203,7 +208,7 @@ public class Client implements Runnable {
             try {
                 newNetworkedBoard.deserializeBoard(serialisedBoard);
             } catch (NumberFormatException e) {
-                System.out.println(serialisedBoard);
+                System.out.println("Error deserializing : " + e);
             }
 
             if (newNetworkedBoard.isEmptyBoard()) {
